@@ -467,12 +467,23 @@ const LS_KEY='ke_fayhaa_lims_v4';
 let MEM={oil:[],gas:[],well:[],water:[],pws:[],pwi:[],lpg:['Export LPG (123)','C3/C4 LPG Bullet (123)','LPG Bullet'],amine:[],cpf:[],hotoil:[],lubeoil:[],gaswell:[],h2s:[],coupon:[],asph_well:[],asph_cpf:[]};
 function safeLoad(){try{const r=localStorage.getItem(LS_KEY);if(r)MEM=JSON.parse(r);}catch(e){}
   // ensure every section array exists even if saved data predates it, and strip any corrupt empty entries
-  ['oil','gas','well','water','pws','pwi','lpg','amine','cpf','hotoil','lubeoil','gaswell','h2s'].forEach(k=>{
+  ['oil','gas','well','water','pws','pwi','lpg','amine','cpf','hotoil','lubeoil','gaswell','h2s','coupon'].forEach(k=>{
     if(!Array.isArray(MEM[k]))MEM[k]=[];
     MEM[k]=MEM[k].filter(r=>r&&typeof r==='object');
   });
   // one-time: drop legacy duplicate cooling-tower point names saved in storage
   try{const _canon=['cpfoilcoolingtower','gppcoolingtower'];const _nz=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');const _b=MEM.water.length;MEM.water=MEM.water.filter(r=>!(/cooling/i.test(String(r.point||''))&&_canon.indexOf(_nz(r.point))<0));if(MEM.water.length!==_b){localStorage.setItem(LS_KEY,JSON.stringify(MEM));}}catch(e){}
+  // assign stable _id to every SEED record that lacks one (enables editing seed data)
+  const _allSeeds=[
+    [SEED_OIL,'so'],[SEED_GAS,'sg'],[SEED_AMINE,'sa'],[SEED_LPG,'sl'],[SEED_WATER,'sw'],
+    [SEED_PWI,'sp'],[SEED_PWS,'spws'],[SEED_WELL,'swl'],[SEED_GASWELL,'sgw'],
+    [SEED_H2S,'sh'],[SEED_HOTOIL,'shot'],[SEED_ASPH,'sas'],[SEED_ASPHCPF,'sasc'],
+    [SEED_COUPON,'sco']
+  ];
+  _allSeeds.forEach(([arr,pfx])=>{
+    if(!Array.isArray(arr))return;
+    arr.forEach((r,i)=>{if(r&&!r._id)r._id=pfx+'_'+i;});
+  });
 }
 function safePersist(){try{localStorage.setItem(LS_KEY,JSON.stringify(MEM));}catch(e){}
   cloudPushDebounced();
@@ -1222,9 +1233,22 @@ const timeHead=()=>`<th class="h-txt">Time</th>`;
 const timeCell=r=>`<td class="dt">${r.time||'—'}</td>`;
 function memArrayFor(sec){return {oil:MEM.oil,gas:MEM.gas,wells:MEM.well,water:MEM.water,pws:MEM.pws,pwi:MEM.pwi,lpg:MEM.lpg,amine:MEM.amine,cpf:MEM.cpf,hotoil:MEM.hotoil,lubeoil:MEM.lubeoil,gaswell:MEM.gaswell,h2s:MEM.h2s,coupon:MEM.coupon}[sec];}
 function findById(id){
-  for(const k of ['oil','gas','well','water','pws','pwi','lpg','amine','cpf','hotoil','lubeoil','gaswell','h2s']){
-    const a=MEM[k];const i=a.findIndex(x=>x._id===id);
-    if(i>=0) return {arr:a,idx:i,row:a[i],key:k};
+  // search MEM first (user-added records)
+  for(const k of ['oil','gas','well','water','pws','pwi','lpg','amine','cpf','hotoil','lubeoil','gaswell','h2s','coupon']){
+    const a=MEM[k]||[];const i=a.findIndex(x=>x&&x._id===id);
+    if(i>=0) return {arr:a,idx:i,row:a[i],key:k,isSeed:false};
+  }
+  // search SEED arrays (now have _id assigned by safeLoad)
+  const seedMap=[
+    ['oil',SEED_OIL],['gas',SEED_GAS],['well',SEED_WELL],['water',SEED_WATER],
+    ['pws',SEED_PWS],['pwi',SEED_PWI],['lpg',SEED_LPG],['amine',SEED_AMINE],
+    ['hotoil',SEED_HOTOIL],['gaswell',SEED_GASWELL],['h2s',SEED_H2S],
+    ['asph',SEED_ASPH],['asphcpf',SEED_ASPHCPF],['coupon',SEED_COUPON],
+  ];
+  for(const [k,arr] of seedMap){
+    if(!Array.isArray(arr))continue;
+    const i=arr.findIndex(x=>x&&x._id===id);
+    if(i>=0) return {arr,idx:i,row:arr[i],key:k,isSeed:true};
   }
   return null;
 }
