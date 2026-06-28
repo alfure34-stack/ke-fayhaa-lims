@@ -1536,7 +1536,7 @@ function pwiTotalStyle(t){
   return '';
 }
 function renderPWI(){
-  let d=applyFilter(PWI());
+  let d=applyFilter(PWI()).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(a.point||'').localeCompare(String(b.point||'')));
   // Today tab: most recent date in dataset (or today's matches)
   if(STATE.tab==='today'){
     const allDates=PWI().map(r=>r.date).filter(Boolean).sort();
