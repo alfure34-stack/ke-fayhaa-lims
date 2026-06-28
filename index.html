@@ -1224,8 +1224,17 @@ function _clearSel(){SELECTED.clear();_refreshSelBar();render();}
 function _deleteSelected(){
   if(!SELECTED.size)return;
   if(!confirm(`حذف ${SELECTED.size} عينة؟`))return;
-  for(const k of Object.keys(MEM)){const a=MEM[k];if(!Array.isArray(a))continue;MEM[k]=a.filter(r=>!SELECTED.has(r._id));}
-  SELECTED.clear();safePersist();_refreshSelBar();render();toast(`🗑 تم الحذف`);
+  // remove from MEM
+  for(const k of Object.keys(MEM)){const a=MEM[k];if(!Array.isArray(a))continue;MEM[k]=a.filter(r=>!SELECTED.has(r&&r._id));}
+  // remove from SEED arrays
+  const _seeds=[SEED_OIL,SEED_GAS,SEED_AMINE,SEED_LPG,SEED_WATER,SEED_PWI,SEED_PWS,
+    SEED_WELL,SEED_GASWELL,SEED_H2S,SEED_HOTOIL,SEED_ASPH,SEED_ASPHCPF,SEED_COUPON];
+  _seeds.forEach(arr=>{
+    if(!Array.isArray(arr))return;
+    const toRemove=arr.filter(r=>r&&SELECTED.has(r._id));
+    toRemove.forEach(r=>{const i=arr.indexOf(r);if(i>=0)arr.splice(i,1);});
+  });
+  SELECTED.clear();safePersist();_refreshSelBar();render();toast('🗑 تم الحذف');
 }
 const timeHead=()=>`<th class="h-txt">Time</th>`;
 const timeCell=r=>`<td class="dt">${r.time||'—'}</td>`;
@@ -1255,7 +1264,8 @@ function deleteSample(id){
   const f=findById(id);if(!f)return;
   if(!confirm('Delete this sample? This cannot be undone.'))return;
   const delId=f.row&&f.row._id;
-  f.arr.splice(f.idx,1);safePersist();if(delId)cloudDelete(delId);render();toast('🗑 Sample deleted');
+  f.arr.splice(f.idx,1);
+  safePersist();if(delId)cloudDelete(delId);render();toast('🗑 Sample deleted');
 }
 function editSample(id){
   if(!can('edit')){toast('⛔ No permission');return;}
