@@ -720,9 +720,6 @@ function _connectRealtime(){
 // start auto-sync on load if cloud configured
 if(cloudReady()){setTimeout(_startAutoSync,2000);}
 
-// update saveCloud to start/stop auto-sync
-const _origSaveCloud=typeof saveCloud==='function'?saveCloud:null;
-
 /* Inventory cloud sync — stored as one record per item in table "inventory" */
 let invPushTimer=null;
 function cloudPushInvDebounced(){if(!cloudReady())return;clearTimeout(invPushTimer);invPushTimer=setTimeout(cloudPushInv,1200);}
@@ -2174,7 +2171,7 @@ function printOfficialReport(){
   const date=(typeof reportDate==='function'?reportDate():todayISO());
   const {core,styles}=_buildOfficialCore(date);
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>KE Fayhaa Daily Report ${date}</title><style>@page{size:A4 landscape;margin:9mm}${styles}</style></head><body>${core}
-  <script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
+  <scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
   </body></html>`;
   const w=window.open('','_blank');
   if(!w){toast('⛔ Popup blocked — allow popups for this page');return;}
@@ -5111,7 +5108,7 @@ function monthlySlideshow(ym){
     <button onclick="go(1)">Next ▶</button>
     <button onclick="window.print()" style="background:#0f766e">🖨 Print all</button>
   </div>
-  <script>
+  <scr'+'ipt>
    var cur=0;var slides=[].slice.call(document.querySelectorAll('.slide'));
    var tabsEl=[].slice.call(document.querySelectorAll('.topbar .tab'));
    function show(i){cur=(i+slides.length)%slides.length;slides.forEach(function(s,k){s.classList.toggle('active',k===cur);});tabsEl.forEach(function(t,k){t.classList.toggle('on',k===cur);});document.getElementById('cnt').textContent=(cur+1)+' / '+slides.length;[].forEach.call(document.querySelectorAll('.dot'),function(d,k){d.classList.toggle('on',k===cur);});var on=tabsEl[cur];if(on&&on.scrollIntoView)on.scrollIntoView({inline:'center',block:'nearest'});window.scrollTo(0,0);}
@@ -5167,7 +5164,7 @@ function printMonthlyReport(ym){
   ym=ym||reportMonth();
   const {core,styles}=_monthlyCore(ym);
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>KE Fayhaa Monthly Report ${ym}</title><style>@page{size:A4 landscape;margin:9mm}${styles}</style></head><body>${core}
-  <script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
+  <scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
   </body></html>`;
   const w=window.open('','_blank');
   if(!w){toast('⛔ Popup blocked — allow popups for this page');return;}
