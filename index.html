@@ -1550,7 +1550,11 @@ function renderPWI(){
     if(!d.length)return `<div class="empty">No PWI samples match your search/date filter.</div>`;
     var note=`${d.length} samples. Use the date range and search box above to filter.`;
   }
-  const body=d.map(r=>`<tr class="${r._new?'row-new':''}"`+spRowStyle(r.point)+`>`+
+  const body=d.map(r=>{
+    const rid=r._id||('pwi_tmp_'+Math.random());
+    const chk=SELECTED.has(rid)?'checked':'';
+    return `<tr class="${r._new?'row-new':''}"`+spRowStyle(r.point)+`>`+
+    `<td class="td-chk"><input type="checkbox" class="chk-sel" ${chk} onchange="_toggleSel('${rid}',this.checked)"></td>`+
     `<td class="dt">${r.date}</td>`+
     timeCell(r)+
     ``+spCell(r,r.point)+``+
@@ -1562,7 +1566,6 @@ function renderPWI(){
     `<td class="num">${cell(r.b20_30,0,'b20_30')}</td>`+
     `<td class="num">${cell(r.b30_350,0,'b30_350')}</td>`+
     `<td class="num"${pwiTotalStyle(r.total)}>${cell(r.total,0,'total')}</td>`+
-    // water quality
     `<td class="num" style="border-left:2px solid #e2e8f0">${cell(r.turb,2,'turb')}</td>`+
     `<td class="num">${cell(r.tss,0,'tss')}</td>`+
     `<td class="num">${cell(r.ph,2,'ph')}</td>`+
@@ -1570,7 +1573,6 @@ function renderPWI(){
     `<td class="num">${cell(r.h2s,1,'h2s')}</td>`+
     `<td class="num">${cell(r.oil,1,'oil')}</td>`+
     `<td class="num">${cell(r.sg,4,'sg')}</td>`+
-    // ions
     `<td class="num" style="border-left:2px solid #e2e8f0">${cell(r.ca,0,'ca')}</td>`+
     `<td class="num">${cell(r.mg,0,'mg')}</td>`+
     `<td class="num">${cell(r.na,0,'na')}</td>`+
@@ -1581,9 +1583,10 @@ function renderPWI(){
     `<td class="num">${cell(r.hco3,0,'hco3')}</td>`+
     `<td class="num">${cell(r.po4,2,'po4')}</td>`+
     manageCell(r)+
-  `</tr>`).join('');
+  `</tr>`;}).join('');
   return `<div class="legend"><span><i class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></i>Total > 5000 (high)</span><span><i class="dot" style="background:#fef3c7;border:1px solid #fcd34d"></i>2000–5000 (watch)</span><span><i class="dot" style="background:#f8fafc;border:1px solid #e2e8f0"></i>&lt; 2000 (normal)</span></div>`+
     `<div class="tbl-wrap thead-pwi"><div class="tbl-scroll"><table><thead><tr>`+
+    `<th class="h-chk"><input type="checkbox" class="chk-sel" title="تحديد الكل" onchange="_toggleAll(this.checked)"></th>`+
     `<th class="h-txt">Date</th>${timeHead()}<th class="h-txt">Sample Point</th>`+
     `<th class="h-num">0.5–1µm</th><th class="h-num">1–2µm</th><th class="h-num">2–4µm</th><th class="h-num">4–10µm</th><th class="h-num">10–20µm</th><th class="h-num">20–30µm</th><th class="h-num">30–350µm</th><th class="h-num">Total</th>`+
     `<th class="h-num" style="border-left:2px solid rgba(255,255,255,.25)">Turbidity NTU</th><th class="h-num">TSS ppm</th><th class="h-num">pH</th><th class="h-num">TDS mg/L</th><th class="h-num">H₂S mg/L</th><th class="h-num">Oil mg/L</th><th class="h-num">SG @20°C</th>`+
