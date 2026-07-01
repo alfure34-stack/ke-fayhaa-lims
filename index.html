@@ -1440,14 +1440,14 @@ function renderOil(){
     return `<tr class="cat-export${nc(r)}">`+
       `<td class="dt">${r.date}</td>`+
       timeCell(r)+
+      checkCell('salt',r.salt,1)+
+      checkCell('water',r.water,3)+
+      `<td class="num">${cell(r.sed,3,'sed')}</td>`+
+      checkCell('bsw',r.bsw,3)+
       checkCell('api',r.api,2)+
       `<td class="num">${cell(r.density,4,'density')}</td>`+
       `<td class="num">${cell(r.sg,4,'sg')}</td>`+
       `<td class="num">${cell(r.visc,2,'visc')}</td>`+
-      checkCell('bsw',r.bsw,3)+
-      checkCell('water',r.water,3)+
-      `<td class="num">${cell(r.sed,2,'sed')}</td>`+
-      checkCell('salt',r.salt,1)+
       `<td class="num" style="border-left:2px solid #e2e8f0">${cell(r.sulfur,2,'sulfur')}</td>`+
       `<td class="num">${cell(r.h2s,1,'h2s')}</td>`+
       `<td class="num">${cell(r.rvp,2,'rvp')}</td>`+
@@ -1458,9 +1458,9 @@ function renderOil(){
   }).join('');
   return `<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr>`+
     `<th class="h-txt">Date</th>${timeHead()}`+
-    `<th class="h-num">API °</th><th class="h-num">Density</th><th class="h-num">SG</th><th class="h-num">Visc cSt</th>`+
-    `<th class="h-num">BS&W %vol</th><th class="h-num">Water %vol</th><th class="h-num">Sed %vol</th><th class="h-num">Salt PTB</th>`+
-    `<th class="h-num" style="border-left:2px solid rgba(255,255,255,.25)">Sulfur PPM WT</th><th class="h-num">H₂S ppm</th><th class="h-num">RVP psi</th><th class="h-num">RVP kPa ⚙</th><th class="h-ctr">Weekly Status</th>${manageHead()}`+
+    `<th class="h-num">Salt PTB</th><th class="h-num">Water %vol</th><th class="h-num">Sed %vol</th><th class="h-num">BS&W %vol</th>`+
+    `<th class="h-num">API °</th><th class="h-num">Density@15</th><th class="h-num">SG</th><th class="h-num">Visc@40 cSt</th>`+
+    `<th class="h-num" style="border-left:2px solid rgba(255,255,255,.25)">Sulfur %wt</th><th class="h-num">H₂S ppm</th><th class="h-num">RVP psi</th><th class="h-num">RVP kPa ⚙</th><th class="h-ctr">Weekly Status</th>${manageHead()}`+
     `</tr></thead><tbody>${body}</tbody></table></div></div>`+
     `<div class="spec-note">Export Metering Skid — daily analysis + weekly tests in one view · ${d.length} days. ⚙ RVP kPa auto-converted from psi (×6.89476). Sulfur in PPM WT. Weekly columns filled only on test days. Red = out of spec (BS&W>0.5, Salt>10, API 30–45).</div>`;
 }
@@ -4759,7 +4759,7 @@ function toast(m){const t=document.getElementById('toast-root');t.innerHTML=`<di
    EXPORT
    ========================================================= */
 function buildSheet(sec){
-  if(sec==='oil'){return{name:'Oil Analysis',h:['Date','Time','Sample Point','API','Density','SG','Visc','BS&W','Water','Sed','Salt','Sulfur','H2S','RVP'],rows:OIL().map(r=>[r.date,r.time||'',r.point||'Export Auto Sampler',r.api??'',r.density??'',r.sg??'',r.visc??'',r.bsw??'',r.water??'',r.sed??'',r.salt??'',r.sulfur??'',r.h2s??'',r.rvp??''])};}
+  if(sec==='oil'){return{name:'Oil Analysis',h:['Date','Time','Sample Point','Salt','Water','Sediment','BS&W','API','Density','SG','Visc','Sulfur','H2S','RVP'],rows:OIL().map(r=>[r.date,r.time||'',r.point||'Export Auto Sampler',r.salt??'',r.water??'',r.sed??'',r.bsw??'',r.api??'',r.density??'',r.sg??'',r.visc??'',r.sulfur??'',r.h2s??'',r.rvp??''])};}
   if(sec==='gas'){return{name:'Gas Analysis',h:['Date','Time','Stream','Point','N2','CO2','C1','C2','C3','iC4','nC4','iC5','nC5','C6+','H2S','WaterDP','HC DewPoint','Mercury Hg','Hg Downstream','MW (calc)','HHV (calc)','LHV (calc)'],rows:GAS().map(r=>[r.date,r.time||'',r.section||'',r.point||'',r.N2??'',r.CO2??'',r.C1??'',r.C2??'',r.C3??'',r.iC4??'',r.nC4??'',r.iC5??'',r.nC5??'',r.C6??'',r.H2S??'',r.WaterDP??'',r.HCDew??'',r.Hg??'',r.HgD??'',r.MW!=null?Number(r.MW.toFixed(4)):'',r.HHV!=null?Number(r.HHV.toFixed(2)):'',r.LHV!=null?Number(r.LHV.toFixed(2)):''])};}
   if(sec==='wells'){return{name:'FSF Wells',h:['Date','Time','Well','Salt','Water','Sediment','BS&W','API','SG','Density@60','H2S Crude','Visc@40','Sulfur','Asphaltene','Status'],rows:WELL().map(r=>[r.date,r.time||'',r.well,r.salt??'',r.water??'',r.sed??'',r.bsw??'',r.api??'',r.sg??'',r.density60??'',r.h2s??'',r.visc40??'',r.sulfur??'',r.asph??'',(r.bsw||0)>1?'WET':'DRY'])};}
   if(sec==='water'){return{name:'RO Water',h:['Date','Time','Point','Cond','TDS','Turb','pH','Chloride','Status'],rows:WATER().map(r=>[r.date,r.time||'',r.point,r.cond??'',r.tds??'',r.turb??'',r.ph??'',r.chloride??'',(r.turb>5?'HIGH TURB':'OK')])};}
