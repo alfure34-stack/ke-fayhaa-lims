@@ -816,15 +816,14 @@ function doLogout(){CURRENT=null;saveSession();MANAGE=false;COMPARE=[];
 const OIL=()=>SEED_OIL.concat(MEM.oil);
 const GAS=()=>SEED_GAS.concat(MEM.gas).map(gasRow);
 const WELL=()=>{
-  const _ghosts={('FH-9|2026-11-28'):1,('FH-9|2025-11-28'):1,('FH-14|2026-08-16'):1};
-  const today=todayISO?todayISO():'2030-01-01';
+  const _ghosts={'FH-9|2026-11-28':1,'FH-9|2025-11-28':1,'FH-14|2026-08-16':1};
+  const today=typeof todayISO==='function'?todayISO():'2030-01-01';
   const all=SEED_WELL.concat(MEM.well||[]);
   const seen=new Set();const out=[];
   for(let i=all.length-1;i>=0;i--){
     const r=all[i];if(!r||typeof r!=='object')continue;
     const w=String(r.well||'').toUpperCase().trim();
     const d=String(r.date||'').trim();
-    // skip ghost records (wrong dates) and future dates
     if(_ghosts[w+'|'+d])continue;
     if(d>today)continue;
     const key=d+'|'+w.toLowerCase();
