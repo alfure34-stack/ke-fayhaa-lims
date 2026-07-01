@@ -69,6 +69,8 @@ input,select,button,textarea{font-family:inherit}
 .thead-lubeoil thead th{background:#5b21b6}
 .snav.active.s-gaswell{border-bottom-color:#b45309}
 .snav.active.s-coupon{border-bottom-color:#0f766e}
+.snav.active.s-solvent{border-bottom-color:#7c2d12}
+.thead-solvent thead th{background:#7c2d12}
 .thead-coupon thead th{background:#0f766e}
 .thead-gaswell thead th{background:#b45309}
 
@@ -464,9 +466,9 @@ function invSave(){try{localStorage.setItem(INV_KEY,JSON.stringify(INV));}catch(
 const INV_CMONTHS=INV_SEED.cmonths, INV_GMONTHS=INV_SEED.gmonths;
 
 const LS_KEY='ke_fayhaa_lims_v4';
-let MEM={oil:[],gas:[],well:[],water:[],pws:[],pwi:[],lpg:['Export LPG (123)','C3/C4 LPG Bullet (123)','LPG Bullet'],amine:[],cpf:[],hotoil:[],lubeoil:[],gaswell:[],h2s:[],coupon:[],asph_well:[],asph_cpf:[]};
+let MEM={oil:[],gas:[],well:[],water:[],pws:[],pwi:[],lpg:['Export LPG (123)','C3/C4 LPG Bullet (123)','LPG Bullet'],amine:[],cpf:[],hotoil:[],lubeoil:[],gaswell:[],h2s:[],coupon:[],asph_well:[],asph_cpf:[],solvent:[]};
 function safeLoad(){try{const r=localStorage.getItem(LS_KEY);if(r)MEM=JSON.parse(r);}catch(e){}
-  ['oil','gas','well','water','pws','pwi','lpg','amine','cpf','hotoil','lubeoil','gaswell','h2s','coupon'].forEach(k=>{
+  ['oil','gas','well','water','pws','pwi','lpg','amine','cpf','hotoil','lubeoil','gaswell','h2s','coupon','solvent'].forEach(k=>{
     if(!Array.isArray(MEM[k]))MEM[k]=[];
     MEM[k]=MEM[k].filter(r=>r&&typeof r==='object');
   });
@@ -489,7 +491,7 @@ function _initSeedIds(){
     [SEED_OIL,'so'],[SEED_GAS,'sg'],[SEED_AMINE,'sa'],[SEED_LPG,'sl'],[SEED_WATER,'sw'],
     [SEED_PWI,'sp'],[SEED_PWS,'spws'],[SEED_WELL,'swl'],[SEED_GASWELL,'sgw'],
     [SEED_H2S,'sh'],[SEED_HOTOIL,'shot'],[SEED_ASPH,'sas'],[SEED_ASPHCPF,'sasc'],
-    [SEED_COUPON,'sco'],
+    [SEED_COUPON,'sco'],[SEED_SOLVENT,'ssv'],
   ];
   _allSeeds.forEach(([arr,pfx])=>{
     if(!Array.isArray(arr))return;
@@ -1274,7 +1276,7 @@ function _deleteSelected(){
 }
 const timeHead=()=>`<th class="h-txt">Time</th>`;
 const timeCell=r=>`<td class="dt">${r.time||'—'}</td>`;
-function memArrayFor(sec){return {oil:MEM.oil,gas:MEM.gas,wells:MEM.well,water:MEM.water,pws:MEM.pws,pwi:MEM.pwi,lpg:MEM.lpg,amine:MEM.amine,cpf:MEM.cpf,hotoil:MEM.hotoil,lubeoil:MEM.lubeoil,gaswell:MEM.gaswell,h2s:MEM.h2s,coupon:MEM.coupon}[sec];}
+function memArrayFor(sec){return {oil:MEM.oil,gas:MEM.gas,wells:MEM.well,water:MEM.water,pws:MEM.pws,pwi:MEM.pwi,lpg:MEM.lpg,amine:MEM.amine,cpf:MEM.cpf,hotoil:MEM.hotoil,lubeoil:MEM.lubeoil,gaswell:MEM.gaswell,h2s:MEM.h2s,coupon:MEM.coupon,solvent:MEM.solvent}[sec];}
 function findById(id){
   // search MEM first (user-added records)
   for(const k of ['oil','gas','well','water','pws','pwi','lpg','amine','cpf','hotoil','lubeoil','gaswell','h2s','coupon']){
@@ -1286,7 +1288,7 @@ function findById(id){
     ['oil',SEED_OIL],['gas',SEED_GAS],['well',SEED_WELL],['water',SEED_WATER],
     ['pws',SEED_PWS],['pwi',SEED_PWI],['lpg',SEED_LPG],['amine',SEED_AMINE],
     ['hotoil',SEED_HOTOIL],['gaswell',SEED_GASWELL],['h2s',SEED_H2S],
-    ['asph',SEED_ASPH],['asphcpf',SEED_ASPHCPF],['coupon',SEED_COUPON],
+    ['asph',SEED_ASPH],['asphcpf',SEED_ASPHCPF],['coupon',SEED_COUPON],['solvent',SEED_SOLVENT],
   ];
   for(const [k,arr] of seedMap){
     if(!Array.isArray(arr))continue;
@@ -1323,6 +1325,7 @@ const TABS={
   lubeoil:[['all','Lube Oil Analysis']],
   gaswell:[['all','FSF Gas Well Analysis']],
   coupon:[['all','Corrosion Coupons']],
+  solvent:[['all','Solvent Check Report']],
 };
 const defaultTab=s=>TABS[s][0][0];
 
@@ -2164,6 +2167,72 @@ function exportCouponDocx(){
   const s=document.createElement('script');s.src=CDNURL;
   s.onload=_build;s.onerror=()=>toast('❌ Failed to load docx library — check internet connection');
   document.head.appendChild(s);
+}
+function renderSolvent(){
+  const d=applyFilter(SOLVENT()).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const body=d.map(r=>`<tr class="${r._new?'row-new':''}">
+    <td class="dt">${r.date}</td>
+    <td class="sp-name">${r.well||''}</td>
+    <td class="txt">${r.product||''}</td>
+    <td class="num">${cell(r.sg,4,'sg')}</td>
+    <td class="num">${cell(r.density60,4,'density60')}</td>
+    <td class="num">${cell(r.ph,1,'ph')}</td>
+    <td class="txt">${r.supervisor||''}</td>
+    <td class="txt">${r.remark||''}</td>
+    <td style="text-align:center"><button class="row-btn" onclick="exportSolventReport('${r._id||''}')" title="Export report">📄</button></td>
+    ${manageCell(r)}
+  </tr>`).join('');
+  return kpiRow([
+    ['#7c2d12','Solvent Tests',d.length,'records'],
+    ['#1F3864','Latest',d.length?d[0].date:'–','date'],
+  ])+
+  `<div class="tbl-wrap thead-solvent"><div class="tbl-scroll"><table><thead><tr>`+
+  `<th class="h-txt">Date</th><th class="h-txt">Well</th><th class="h-txt">Product</th>`+
+  `<th class="h-num">SG</th><th class="h-num">Density @60°F</th><th class="h-num">pH</th>`+
+  `<th class="h-txt">Supervisor</th><th class="h-txt">Remark</th><th class="h-ctr">Report</th>${manageHead()}`+
+  `</tr></thead><tbody>${body}</tbody></table></div></div>`+
+  `<div class="spec-note">Solvent Check Report · ${d.length} records. Click 📄 to export individual report.</div>`;
+}
+function exportSolventReport(id){
+  let rec=null;
+  if(id){const all=SOLVENT();rec=all.find(r=>r._id===id);}
+  if(!rec){const all=SOLVENT();rec=all.length?all[all.length-1]:null;}
+  if(!rec){toast('لا توجد بيانات');return;}
+  _ensureExcelJS().then(()=>{
+    const d=rec.date||'';
+    const well=rec.well||'';
+    const rows=[
+      [{v:'FAYHAA OIL FIELD LABORATORY TEST REPORT',s:'tBig',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'Product',s:'hdr'},{v:rec.product||'Annulus',s:'val',m:3}],
+      [{v:'Sampled Date/Time',s:'hdr'},{v:d,s:'val',m:3}],
+      [{v:'Analysis Date',s:'hdr'},{v:d,s:'val',m:3}],
+      [{v:'',s:'cell',m:4}],
+      [{v:well,s:'band',m:4}],
+      [{v:'Sample Name',s:'hdr'},{v:'Date and Time',s:'hdr'},{v:'Specific Gravity',s:'hdr'},{v:'DENSITY\ng/cm3 @ 60 F',s:'hdr'},{v:'pH',s:'hdr'}],
+      [{v:well,s:'val'},{v:d,s:'val'},{v:rec.sg!=null?Number(rec.sg).toFixed(4):'',s:'val'},{v:rec.density60!=null?Number(rec.density60).toFixed(4):'',s:'val'},{v:rec.ph!=null?Number(rec.ph).toFixed(1):'',s:'val'}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'Remark: '+(rec.remark||''),s:'cell',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'KEBL:',s:'hdr',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'Signed: ',s:'cell',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'Lab Supervisor: '+(rec.supervisor||''),s:'cell',m:4}],
+      [{v:'This certificate shall not be reproduced, except in full, without written approval of the laboratory.',s:'cell',m:4}],
+      [{v:'',s:'cell',m:4}],
+      [{v:'Kuwait Energy Basra Limited KEBL, Subsidiary of United Energy Group Limited, PAC - Block 9 Oil Field, FYHAA Laboratory, Basra - Iraq',s:'cell',m:4}],
+    ];
+    const sheet={name:'Solvent Check',cols:[160,120,100,100,80],rows:rows,freeze:{rows:0,cols:0}};
+    _xlsxFromModels([sheet],`Solvent_Check_${well}_${d}.xlsx`,'📄 Solvent report exported');
+  }).catch(()=>toast('❌ Export error'));
 }
 function renderGasWell(){
   const d=applyFilter(GASWELL()).filter(r=>r&&typeof r==='object');
@@ -4098,7 +4167,10 @@ function twinSVG(units){
 const SECTION_TITLE={dash:'Dashboard',twin:'Digital Twin',oil:'Oil Analysis',gas:'Gas Analysis',wells:'FSF Wells',water:'RO Water',pws:'PWS',pwi:'PWI Water',lpg:'LPG',amine:'Amine',cpf:'CPF Inlet Manifold',hotoil:'Hot Oil',lubeoil:'Lube Oil',gaswell:'FSF Gas Wells'};
 var SEED_COUPON=[{"date": "2026-06-23", "tag": "LI043", "initial_wt": null, "final_wt": 14.4486, "weight_loss": null, "notes": "Corroded — ID on envelope"}, {"date": "2026-06-23", "tag": "LI042", "initial_wt": null, "final_wt": 11.735, "weight_loss": null, "notes": "Corroded — ID on envelope"}, {"date": "2026-06-23", "tag": "LI638", "initial_wt": null, "final_wt": 26.0476, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI714", "initial_wt": null, "final_wt": 25.5948, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI626", "initial_wt": null, "final_wt": 25.8022, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI720", "initial_wt": null, "final_wt": 25.6855, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI651", "initial_wt": null, "final_wt": 25.9733, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI640", "initial_wt": null, "final_wt": 25.9341, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI636", "initial_wt": null, "final_wt": 25.7295, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI715", "initial_wt": null, "final_wt": 25.8784, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI630", "initial_wt": null, "final_wt": 25.7558, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI711", "initial_wt": null, "final_wt": 25.7558, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI629", "initial_wt": null, "final_wt": 25.8863, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI628", "initial_wt": null, "final_wt": 25.8649, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI637", "initial_wt": null, "final_wt": 25.9191, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI718", "initial_wt": null, "final_wt": 25.6425, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI656", "initial_wt": null, "final_wt": 25.7035, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI659", "initial_wt": null, "final_wt": 25.7965, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI719", "initial_wt": null, "final_wt": 25.795, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI633", "initial_wt": null, "final_wt": 25.818, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI712", "initial_wt": null, "final_wt": 25.8848, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI716", "initial_wt": null, "final_wt": 25.9071, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI717", "initial_wt": null, "final_wt": 25.9564, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI639", "initial_wt": null, "final_wt": 25.8257, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LI627", "initial_wt": null, "final_wt": 25.852, "weight_loss": null, "notes": null}, {"date": "2026-06-23", "tag": "LJ049", "initial_wt": null, "final_wt": 37.5813, "weight_loss": null, "notes": null}];
 const COUPON=()=>SEED_COUPON.concat(MEM.coupon||[]);
-const SIDEBAR_ITEMS=[['dash','Dashboard','▦'],['twin','Digital Twin','🏭'],['oil','Oil Analysis','🛢️'],['gas','Gas Analysis','🔥'],['perf','Plant Performance','📊'],['wells','FSF Wells','⛽'],['h2s','H2S Analysis','☣️'],['water','RO Water','💧'],['pws','PWS','🌊'],['pwi','PWI Water','💦'],['lpg','LPG','🫧'],['amine','Amine','🧪'],['cpf','CPF Inlet','🏭'],['asph','Asphaltene ADT','🧱'],['hotoil','Hot Oil','♨️'],['lubeoil','Lube Oil','🛢️'],['gaswell','FSF Gas Wells','⛽'],['coupon','Corrosion Coupon','⚖️']];
+
+var SEED_SOLVENT=[{"date": "2026-06-23", "well": "FH-21", "product": "Annulus", "sg": 0.8961, "density60": 0.8952, "ph": 6.5, "supervisor": "Hamzah Noori"}];
+const SOLVENT=()=>SEED_SOLVENT.concat(MEM.solvent||[]);
+const SIDEBAR_ITEMS=[['dash','Dashboard','▦'],['twin','Digital Twin','🏭'],['oil','Oil Analysis','🛢️'],['gas','Gas Analysis','🔥'],['perf','Plant Performance','📊'],['wells','FSF Wells','⛽'],['h2s','H2S Analysis','☣️'],['water','RO Water','💧'],['pws','PWS','🌊'],['pwi','PWI Water','💦'],['lpg','LPG','🫧'],['amine','Amine','🧪'],['cpf','CPF Inlet','🏭'],['asph','Asphaltene ADT','🧱'],['hotoil','Hot Oil','♨️'],['lubeoil','Lube Oil','🛢️'],['gaswell','FSF Gas Wells','⛽'],['coupon','Corrosion Coupon','⚖️'],['solvent','Solvent Check','🧴']];
 function toggleSidebar(){const s=document.getElementById('sidebar');if(s)s.classList.toggle('open');}
 function _exportMenuItems(){return '<button onclick="printOfficialReport()"><span class="ic" style="background:#1F3864">🖨</span> <b>Print Daily Report</b></button><button onclick="saveOfficialExcel()"><span class="ic ic-xls">💾</span> <b>Save Daily Report (Excel)</b></button><button onclick="saveExportCert(\'oil\')"><span class="ic" style="background:#92400e">🛢</span> <b>Export Oil Report (Cert.)</b></button><button onclick="saveExportCert(\'lpg\')"><span class="ic" style="background:#0e7490">🔥</span> <b>Export LPG Report (Cert.)</b></button><button onclick="openWAImport()"><span class="ic" style="background:#25D366">📱</span> <b>Import from WhatsApp</b></button><button onclick="openHotOilPaste()"><span class="ic" style="background:#9d174d">🛢</span> <b>Paste Hot Oil List</b></button><div style="border-top:1px solid #e2e8f0;margin:4px 0"></div><button onclick="openMonthlyReport()"><span class="ic" style="background:#7c3aed">🗓</span> <b>Monthly Report…</b></button>';}
 function appShell(active,content){
@@ -4361,7 +4433,7 @@ function render(){
     </div>`+renderAsph();
   }else{
     let table;
-    if(S==='oil')table=renderOil();else if(S==='gas')table=renderGas();else if(S==='wells')table=renderWells();else if(S==='water')table=renderWater();else if(S==='pws')table=renderPWS();else if(S==='pwi')table=renderPWI();else if(S==='lpg')table=renderLPG();else if(S==='amine')table=renderAmine();else if(S==='cpf')table=renderCPF();else if(S==='hotoil')table=renderHotOil();else if(S==='lubeoil')table=renderLubeOil();else if(S==='h2s')table=renderH2S();else if(S==='coupon')table=renderCoupon();else table=renderGasWell();
+    if(S==='oil')table=renderOil();else if(S==='gas')table=renderGas();else if(S==='wells')table=renderWells();else if(S==='water')table=renderWater();else if(S==='pws')table=renderPWS();else if(S==='pwi')table=renderPWI();else if(S==='lpg')table=renderLPG();else if(S==='amine')table=renderAmine();else if(S==='cpf')table=renderCPF();else if(S==='hotoil')table=renderHotOil();else if(S==='lubeoil')table=renderLubeOil();else if(S==='h2s')table=renderH2S();else if(S==='coupon')table=renderCoupon();else if(S==='solvent')table=renderSolvent();else table=renderGasWell();
     content=`${weeklyReminder()}
     ${renderKPIs()}
     <div class="toolbar">
@@ -4715,9 +4787,10 @@ function openAdd(editRow){
     </div></div>`;
   }
   else if(S==='coupon')b=`<div class="section-label">Corrosion Coupon Details</div><div class="grid3">${field('Date','f_date','date')}${field('CC Tag No.','f_tag','text')}${field('Initial Weight (g)','f_initial_wt')}${field('Final Weight (g)','f_final_wt')}${field('Notes','f_notes','text')}</div>`;
+  else if(S==='solvent')b=`<div class="section-label">Solvent Check</div><div class="grid3">${field('Date','f_date','date')}${field('Well No.','f_well','text')}${field('Product','f_product','text')}${field('Specific Gravity','f_sg')}${field('Density @60°F g/cm³','f_density60')}${field('pH','f_ph')}${field('Lab Supervisor','f_supervisor','text')}${field('Remark','f_remark','text')}</div>`;
   else if(S==='gaswell')b=`<div class="section-label">Sample</div><div class="grid3">${field('Date','f_date','date')}${field('Time','f_time','time')}${spField('gaswell','Well')}</div><div class="section-label">Well & Formation</div><div class="grid3"><div class="ff"><label class="fl">Formation / Layer</label><select class="inp" id="f_formation"><option value="">—</option><option>Mishrif</option><option>Yamama</option><option>Zubair</option><option>Nahr Umr</option><option>Hartha</option><option>Sadi</option><option>Tanuma</option><option>Khasib</option><option>Other</option></select></div></div><div class="section-label">Gas Well Analysis</div><div class="grid3">${field('COS ppm','f_cos')}${field('CH4S ppm','f_ch4s')}${field('CS2 ppm','f_cs2')}${field('H₂S ppm','f_h2s')}${field('CO₂ V%','f_CO2')}</div>`;
   else b=`<div class="section-label">Sample</div><div class="grid3">${field('Date','f_date','date')}${field('Time','f_time','time')}${spField('pwi','Sample Point')}</div><div class="section-label">Particle Size Distribution (counts) — Total auto-sums</div><div class="grid3">${pfield('0.5–1µm','f_b05_1')}${pfield('1–2µm','f_b1_2')}${pfield('2–4µm','f_b2_4')}${pfield('4–10µm','f_b4_10')}${pfield('10–20µm','f_b10_20')}${pfield('20–30µm','f_b20_30')}${pfield('30–350µm','f_b30_350')}</div><div class="section-label">Total (⚙ live)</div><div class="grid3"><div class="ff"><label class="fl">Total Count ⚙</label><input class="inp" id="f_total" readonly style="background:#fff7ed;font-weight:800"></div></div><div class="section-label">Water Quality (optional)</div><div class="grid3">${field('Turbidity NTU','f_turb')}${field('TSS ppm','f_tss')}${field('pH','f_ph')}${field('TDS mg/L','f_tds')}${field('H₂S mg/L','f_h2s')}${field('Oil mg/L','f_oil')}${field('SG @20°C','f_sg')}</div><div class="section-label">Ions mg/l (optional)</div><div class="grid3">${field('Ca','f_ca')}${field('Mg','f_mg')}${field('Na','f_na')}${field('Sr','f_sr')}${field('Ba','f_ba')}${field('K','f_k')}${field('Fe','f_fe')}${field('Cl','f_cl')}${field('PO₄','f_po4')}${field('F','f_f')}${field('SO₄','f_so4')}${field('HCO₃','f_hco3')}${field('CO₃','f_co3')}</div>`;
-  const titles={oil:'Oil Analysis',gas:'Gas Analysis',wells:'FSF Well',water:'RO Water',pws:'PWS',pwi:'PWI Water',lpg:'LPG',amine:'Amine',cpf:'CPF Inlet Manifold',hotoil:'Hot Oil',lubeoil:'Lube Oil',gaswell:'FSF Gas Well',coupon:'Corrosion Coupon',asph:'Asphaltene ADT'};
+  const titles={oil:'Oil Analysis',gas:'Gas Analysis',wells:'FSF Well',water:'RO Water',pws:'PWS',pwi:'PWI Water',lpg:'LPG',amine:'Amine',cpf:'CPF Inlet Manifold',hotoil:'Hot Oil',lubeoil:'Lube Oil',gaswell:'FSF Gas Well',coupon:'Corrosion Coupon',solvent:'Solvent Check',asph:'Asphaltene ADT'};
   document.getElementById('modal-root').innerHTML=`<div class="overlay" onclick="if(event.target===this)closeAdd()"><div class="modal-box"><div class="modal-hdr"><div><h3>${isEdit?'Edit':'Add'} ${titles[S]} Sample</h3><p>${isEdit?'Modify fields and save changes':'Fill fields and save'}</p></div><div style="display:flex;gap:8px;align-items:center">${isEdit?'':`<button type="button" class="ghost-btn" style="padding:7px 13px;font-size:12px;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35)" onclick="copyLastSample()">⧉ نسخ آخر عينة</button>`}<button class="close-btn" onclick="closeAdd()">✕</button></div></div><div class="modal-body">${b}</div><div class="modal-foot"><button class="ghost-btn" onclick="closeAdd()">Cancel</button>${isEdit?'':`<button class="ghost-btn" style="color:#1d4ed8;border-color:#1d4ed8" onclick="saveSample(true)">＋ حفظ وإضافة أخرى</button>`}<button class="save-btn" onclick="saveSample()">${isEdit?'Save Changes':'Save Sample'}</button></div></div></div>`;
   setTimeout(_setupFormNav,50);
   // prefill
@@ -4759,6 +4832,7 @@ function saveSample(addAnother){
   else if(S==='lubeoil'){const pdfData=gv('f_particle_pdf_data');const pdfName=gv('f_particle_pdf_name');const o={time:gv('f_time'),point:getSP(),density:gv('f_density'),visc100:gv('f_visc100'),visc40:gv('f_visc40'),rvp:gv('f_rvp'),flash:gv('f_flash'),moisture:gv('f_moisture'),particle:gv('f_particle'),appearance:gv('f_appearance')};if(pdfData){o.pdf=pdfData;o.pdfName=pdfName||'report.pdf';}Object.assign(r,o);}
   else if(S==='h2s')Object.assign(r,{time:gv('f_time'),point:getSP(),h2s:gv('f_h2s'),cos:gv('f_cos'),merc:gv('f_merc')});
   else if(S==='coupon'){const wi=gv('f_initial_wt'),wf=gv('f_final_wt');const wl=(wi!==''&&wf!==''&&!isNaN(wi)&&!isNaN(wf))?Math.round((parseFloat(wi)-parseFloat(wf))*10000)/10000:null;Object.assign(r,{tag:gv('f_tag'),initial_wt:wi!==''?parseFloat(wi):null,final_wt:wf!==''?parseFloat(wf):null,weight_loss:wl,notes:gv('f_notes')});}
+  else if(S==='solvent')Object.assign(r,{well:gv('f_well'),product:gv('f_product')||'Annulus',sg:gv('f_sg'),density60:gv('f_density60'),ph:gv('f_ph'),supervisor:gv('f_supervisor'),remark:gv('f_remark')});
   else if(S==='asph'){
     const typ=gv('f_adt_type')||'cpf';
     if(typ==='well'){
