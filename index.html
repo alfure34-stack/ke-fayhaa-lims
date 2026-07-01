@@ -1555,43 +1555,47 @@ function exportMonthlyTests(ym){
   const avg=(n,d)=>d?Math.round(n/d*10)/10:0;
   const D=days;
 
-  // Build table rows: [Sample Type, Avg Samples/Day, No. Tests/Day, Total Tests/Month, Remarks]
+  // Build table rows: [Sample Type, Total Samples, Avg Samples/Day, Total Tests, Avg Tests/Day, Active Days, Remarks]
   const rows=[
-    ['Crude Oil (Export)',         avg(exportOil.length,D(exportOil)), avg(tc(exportOil,oilKeys),D(exportOil)), tc(exportOil,oilKeys),     'Daily export quality monitoring'],
-    ['Crude Oil (CPF Internal)',   avg(cpfOil.length,D(cpfOil)),       avg(tc(cpfOil,oilKeys),D(cpfOil)),       tc(cpfOil,oilKeys),         'Weekly CPF separators & dehydrators'],
-    ['Raw Gas (118)',              avg(rawGas.length,D(rawGas)),        avg(tc(rawGas,gasKeys),D(rawGas)),        tc(rawGas,gasKeys),         'Inlet gas analysis'],
-    ['Dry Gas (119)',              avg(dryGas.length,D(dryGas)),        avg(tc(dryGas,gasKeys),D(dryGas)),        tc(dryGas,gasKeys),         'Fast turnaround maintained'],
-    ['Export Gas (120)',           avg(expGas.length,D(expGas)),        avg(tc(expGas,gasKeys),D(expGas)),        tc(expGas,gasKeys),         'Export gas specification check'],
-    ['LPG',                       avg(lpgJ.length,D(lpgJ)),            avg(tc(lpgJ,lpgKeys),D(lpgJ)),            tc(lpgJ,lpgKeys),           'Quality tests when receiving samples'],
-    ['Amine',                     avg(amineJ.length,D(amineJ)),        avg(tc(amineJ,amineKeys),D(amineJ)),      tc(amineJ,amineKeys),       'Routine monitoring, no delays'],
-    ['RO Water',                  avg(roWater.length,D(roWater)),      avg(tc(roWater,wKeys),D(roWater)),        tc(roWater,wKeys),          'Daily essential checks'],
-    ['Cooling Water',             avg(cooling.length,D(cooling)),      avg(tc(cooling,wKeys),D(cooling)),        tc(cooling,wKeys),          'Completed within TAT'],
-    ['Water Injection / PWI',     avg(pwiJ.length,D(pwiJ)),           avg(tc(pwiJ,pwiKeys),D(pwiJ)),            tc(pwiJ,pwiKeys),           'High importance - no delays'],
-    ['Well Samples (FSF)',        avg(wellJ.length,D(wellJ)),          avg(tc(wellJ,wellKeys),D(wellJ)),         tc(wellJ,wellKeys),         'Priority-based handling'],
-    ['Corrosion Coupon Tests',    avg(couponJ.length,Math.max(1,D(couponJ))), couponJ.length, couponJ.length,   'Monthly/weekly workload'],
-    ['Hot Oil',                   hotoilJ.length>0?avg(hotoilJ.length,D(hotoilJ)):0, 0, 0,                      'Weekly workload'],
+    ['Crude Oil (Export)',       exportOil.length, avg(exportOil.length,D(exportOil)), tc(exportOil,oilKeys),  avg(tc(exportOil,oilKeys),D(exportOil)),  D(exportOil),  'Daily export quality monitoring'],
+    ['Crude Oil (CPF Internal)', cpfOil.length,    avg(cpfOil.length,D(cpfOil)),       tc(cpfOil,oilKeys),    avg(tc(cpfOil,oilKeys),D(cpfOil)),        D(cpfOil),     'Weekly CPF separators & dehydrators'],
+    ['Raw Gas (118)',            rawGas.length,    avg(rawGas.length,D(rawGas)),        tc(rawGas,gasKeys),    avg(tc(rawGas,gasKeys),D(rawGas)),         D(rawGas),     'Inlet gas analysis'],
+    ['Dry Gas (119)',            dryGas.length,    avg(dryGas.length,D(dryGas)),        tc(dryGas,gasKeys),    avg(tc(dryGas,gasKeys),D(dryGas)),         D(dryGas),     'Fast turnaround maintained'],
+    ['Export Gas (120)',         expGas.length,    avg(expGas.length,D(expGas)),        tc(expGas,gasKeys),    avg(tc(expGas,gasKeys),D(expGas)),         D(expGas),     'Export gas specification check'],
+    ['LPG',                     lpgJ.length,      avg(lpgJ.length,D(lpgJ)),            tc(lpgJ,lpgKeys),      avg(tc(lpgJ,lpgKeys),D(lpgJ)),             D(lpgJ),       'Quality tests when receiving samples'],
+    ['Amine',                   amineJ.length,    avg(amineJ.length,D(amineJ)),        tc(amineJ,amineKeys),  avg(tc(amineJ,amineKeys),D(amineJ)),       D(amineJ),     'Routine monitoring, no delays'],
+    ['RO Water',                roWater.length,   avg(roWater.length,D(roWater)),      tc(roWater,wKeys),     avg(tc(roWater,wKeys),D(roWater)),         D(roWater),    'Daily essential checks'],
+    ['Cooling Water',           cooling.length,   avg(cooling.length,D(cooling)),      tc(cooling,wKeys),     avg(tc(cooling,wKeys),D(cooling)),         D(cooling),    'Completed within TAT'],
+    ['Water Injection / PWI',   pwiJ.length,      avg(pwiJ.length,D(pwiJ)),           tc(pwiJ,pwiKeys),      avg(tc(pwiJ,pwiKeys),D(pwiJ)),             D(pwiJ),       'High importance - no delays'],
+    ['Well Samples (FSF)',      wellJ.length,      avg(wellJ.length,D(wellJ)),          tc(wellJ,wellKeys),    avg(tc(wellJ,wellKeys),D(wellJ)),           D(wellJ),      'Priority-based handling'],
+    ['Corrosion Coupon Tests',  couponJ.length,   avg(couponJ.length,Math.max(1,D(couponJ))), couponJ.length, avg(couponJ.length,Math.max(1,D(couponJ))), D(couponJ),  'Monthly/weekly workload'],
+    ['Hot Oil',                 hotoilJ.length,   hotoilJ.length>0?avg(hotoilJ.length,D(hotoilJ)):0, 0, 0, D(hotoilJ), 'Weekly workload'],
   ];
 
+  const totalSamp=rows.reduce((s,r)=>s+r[1],0);
   const totalTests=rows.reduce((s,r)=>s+r[3],0);
-  const totalAvgSamp=Math.round(rows.reduce((s,r)=>s+r[0],0)*10)/10;
+  const totalAvgSamp=Math.round(rows.reduce((s,r)=>s+r[2],0)*10)/10;
+  const totalAvgTests=Math.round(rows.reduce((s,r)=>s+r[4],0)*10)/10;
 
   // Build sheet model
-  const HDR=['Sample Type','Avg Samples/Day','Tests/Day','Total Tests/Month','Remarks / Capability'];
+  const HDR=['Sample Type','Total Samples/Month','Avg Samples/Day','Total Tests/Month','Avg Tests/Day','Active Days','Remarks / Capability'];
   const shRows=[
-    [{v:'KUWAIT ENERGY BASRA LIMITED — FAYHAA CPF LABORATORY',s:'tBig',m:4}],
-    [{v:'Monthly Number of Tests — '+ymLabel,s:'tRpt',m:4}],
-    [{v:'Handled by Staff (7) Day/Night Shift: ✓ Fully Handled',s:'band',m:4}],
-    HDR.map((h,i)=>({v:h,s:'hdr'})),
+    [{v:'KUWAIT ENERGY BASRA LIMITED — FAYHAA CPF LABORATORY',s:'tBig',m:6}],
+    [{v:'Monthly Number of Tests — '+ymLabel,s:'tRpt',m:6}],
+    [{v:'Handled by Staff (7) Day/Night Shift: ✓ Fully Handled',s:'band',m:6}],
+    HDR.map(h=>({v:h,s:'hdr'})),
     ...rows.map(r=>[
       {v:r[0],s:'lft'},
       {v:r[1],s:r[1]>0?'val':'cell'},
       {v:r[2],s:r[2]>0?'val':'cell'},
       {v:r[3],s:r[3]>0?'val':'cell'},
-      {v:r[4],s:'cell'},
+      {v:r[4],s:r[4]>0?'val':'cell'},
+      {v:r[5],s:r[5]>0?'val':'cell'},
+      {v:r[6],s:'cell'},
     ]),
-    [{v:'TOTAL',s:'hdr'},{v:totalAvgSamp,s:'hdr'},{v:'',s:'hdr'},{v:totalTests,s:'hdr'},{v:'',s:'hdr'}],
+    [{v:'TOTAL',s:'hdr'},{v:totalSamp,s:'hdr'},{v:totalAvgSamp,s:'hdr'},{v:totalTests,s:'hdr'},{v:totalAvgTests,s:'hdr'},{v:'',s:'hdr'},{v:'',s:'hdr'}],
   ];
-  const sheet={name:'Monthly Tests '+ym,cols:[180,80,70,90,200],rows:shRows,freeze:{rows:4,cols:1}};
+  const sheet={name:'Monthly Tests '+ym,cols:[180,80,80,80,80,65,200],rows:shRows,freeze:{rows:4,cols:1}};
   _ensureExcelJS().then(()=>{
     _xlsxFromModels([sheet],`Monthly_Tests_${ym}.xlsx`,'📊 Monthly tests report exported');
   }).catch(()=>toast('❌ Export error'));
