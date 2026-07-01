@@ -2231,19 +2231,19 @@ function exportSolventReport(){
     const bf={bold:true,size:12,name:'Times New Roman'};
     const thin={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
     const setBorder=(r,c)=>{ws.getCell(r,c).border=thin;};
-    // Logos - add after all content
+    // Logos - using string range anchoring (most compatible)
     let _bocOk=false,_keOk=false;
     try{
       if(typeof BOC_LOGO_PNG==='string'&&BOC_LOGO_PNG.length>100){
         const bocId=wb.addImage({base64:BOC_LOGO_PNG,extension:'png'});
-        ws.addImage(bocId,{tl:{col:3.5,row:0},br:{col:5,row:1.8}});
+        ws.addImage(bocId,{tl:{col:4,row:0},ext:{width:130,height:65}});
         _bocOk=true;
       }
     }catch(e){console.warn('BOC logo error',e);}
     try{
       if(typeof KE_LOGO_PNG==='string'&&KE_LOGO_PNG.length>100){
         const keId=wb.addImage({base64:KE_LOGO_PNG,extension:'png'});
-        ws.addImage(keId,{tl:{col:0,row:0},br:{col:1.2,row:1.5}});
+        ws.addImage(keId,{tl:{col:0,row:0},ext:{width:160,height:45}});
         _keOk=true;
       }
     }catch(e){console.warn('KE logo error',e);}
