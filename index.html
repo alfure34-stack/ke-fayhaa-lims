@@ -1516,8 +1516,8 @@ function renderGas(){
 }
 
 /* ---------- WELLS ---------- */
-function exportMonthlyTests(){
-  const ym=STATE.from?STATE.from.slice(0,7):(typeof reportDate==='function'?reportDate().slice(0,7):todayISO().slice(0,7));
+function exportMonthlyTests(ym){
+  if(!ym)ym=STATE.from?STATE.from.slice(0,7):(typeof reportDate==='function'?reportDate().slice(0,7):todayISO().slice(0,7));
   const ymLabel=new Date(ym+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
   const daysInMonth=new Date(new Date(ym+'-01').getFullYear(),new Date(ym+'-01').getMonth()+1,0).getDate();
 
@@ -4196,8 +4196,10 @@ function renderDashboard(){
 
   return `
   <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <button class="tb-btn" onclick="exportMonthlyTests()" style="background:#0f766e;color:#fff;font-size:13px;padding:8px 18px">📋 Monthly Tests Report</button>
-    <label style="font-size:13px;color:#64748b;font-weight:600">Pick date:</label>
+    <label style="font-size:13px;color:#64748b;font-weight:600">الشهر:</label>
+    <input type="month" id="dash_month_pick" value="${monthKey}" style="padding:6px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;color:#1e293b">
+    <button class="tb-btn" onclick="exportMonthlyTests(document.getElementById('dash_month_pick').value)" style="background:#0f766e;color:#fff;font-size:13px;padding:8px 18px">📋 Monthly Tests Report</button>
+    <label style="font-size:13px;color:#64748b;font-weight:600;margin-left:12px">Pick date:</label>
     <input type="date" value="${pickedDate}" style="padding:6px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;color:#1e293b"
       onchange="window._dashPickedDate=this.value;render()">
     <span style="font-size:12px;color:#94a3b8">${monthDates.length} days this month · ${monthTotalSamp} samples · ${monthTotalTests} tests</span>
