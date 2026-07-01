@@ -4131,10 +4131,10 @@ function renderDashboard(){
   const secs=_dashSecData();
   const total=secs.reduce((a,s)=>a+s.n,0);
   const today=(typeof todayCount==='function'?todayCount():0);
-  const tISO=(typeof todayISO==='function'?todayISO():'');let monthKey=tISO.slice(0,7);
+  const tISO=(typeof todayISO==='function'?todayISO():'');
+  let monthKey=tISO.slice(0,7);
   let month=0;secs.forEach(s=>s.arr.forEach(r=>{if((r.date||'').slice(0,7)===monthKey)month++;}));
   if(!month){monthKey=(typeof reportMonth==='function'?reportMonth():'');secs.forEach(s=>s.arr.forEach(r=>{if((r.date||'').slice(0,7)===monthKey)month++;}));}
-  // count individual tests (filled measurement fields) per record
   const _TMETA=new Set(['date','time','point','section','well','remarks','formation','id','name']);
   const _countTests=r=>{let c=0;for(const k in r){if(_TMETA.has(k)||k.charAt(0)==='_')continue;const v=r[k];if(v!=null&&v!==''&&!(typeof v==='number'&&isNaN(v)))c++;}return c;};
   let testsToday=0,testsMonth=0,testsTotal=0;
@@ -4155,9 +4155,52 @@ function renderDashboard(){
   const rowsHTML=recent6.map(r=>`<tr><td style="font-weight:700;color:#1e293b">${String(r.point).slice(0,28)}</td><td><span class="dash-pill" style="background:${r.c}22;color:${r.c}">${r.sec}</span></td><td>${r.date}</td><td>${r.time||'—'}</td></tr>`).join('')||'<tr><td colspan="4" style="color:#94a3b8;text-align:center;padding:16px">No samples</td></tr>';
   const qa=(ico,bg,label,fn)=>`<div class="quick-btn" onclick="${fn}"><span class="qb-ico" style="background:${bg}">${ico}</span>${label}</div>`;
   const admin=CURRENT&&CURRENT.role==='admin';
+
+  // === Daily breakdown table ===
+  // collect all records with dates
+  const allRecs=[];secs.forEach(s=>s.arr.forEach(r=>{if(r.date)allRecs.push(r);}));
+  // group by date
+  const dateMap={};allRecs.forEach(r=>{const d=r.date;if(!dateMap[d])dateMap[d]={samples:0,tests:0};dateMap[d].samples++;dateMap[d].tests+=_countTests(r);});
+  const allDates=Object.keys(dateMap).sort((a,b)=>b.localeCompare(a)); // newest first
+
+  // picked date (from a hidden state or default today/latest)
+  const pickedDate=window._dashPickedDate||(allDates[0]||tISO);
+
+  // daily breakdown rows for picked month (monthKey)
+  const monthDates=allDates.filter(d=>d.startsWith(monthKey));
+  const monthTotalSamp=monthDates.reduce((s,d)=>s+(dateMap[d]?.samples||0),0);
+  const monthTotalTests=monthDates.reduce((s,d)=>s+(dateMap[d]?.tests||0),0);
+
+  // per-section breakdown for picked date
+  const secBreakdown=secs.map(s=>{
+    const dayRecs=s.arr.filter(r=>r.date===pickedDate);
+    const t=dayRecs.reduce((sum,r)=>sum+_countTests(r),0);
+    return {l:s.l,c:s.c,samples:dayRecs.length,tests:t};
+  }).filter(s=>s.samples>0);
+
+  const dailyTableRows=monthDates.map(d=>{
+    const s=dateMap[d]||{samples:0,tests:0};
+    const isSel=d===pickedDate;
+    return `<tr onclick="window._dashPickedDate='${d}';render()" style="cursor:pointer;${isSel?'background:#eff6ff;font-weight:700':''}" title="Click to see breakdown">
+      <td style="padding:5px 10px;color:#1e293b">${d}</td>
+      <td style="padding:5px 10px;text-align:center;color:#2563eb">${s.samples}</td>
+      <td style="padding:5px 10px;text-align:center;color:#0891b2">${s.tests}</td>
+    </tr>`;
+  }).join('');
+
+  const secRows=secBreakdown.map(s=>`<tr>
+    <td style="padding:4px 10px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.c};margin-right:6px"></span>${s.l}</td>
+    <td style="padding:4px 10px;text-align:center;color:#2563eb">${s.samples}</td>
+    <td style="padding:4px 10px;text-align:center;color:#0891b2">${s.tests}</td>
+  </tr>`).join('')||`<tr><td colspan="3" style="color:#94a3b8;text-align:center;padding:12px">No data for ${pickedDate}</td></tr>`;
+
   return `
-  <div style="margin-bottom:10px">
+  <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <button class="tb-btn" onclick="exportMonthlyTests()" style="background:#0f766e;color:#fff;font-size:13px;padding:8px 18px">📋 Monthly Tests Report</button>
+    <label style="font-size:13px;color:#64748b;font-weight:600">Pick date:</label>
+    <input type="date" value="${pickedDate}" style="padding:6px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;color:#1e293b"
+      onchange="window._dashPickedDate=this.value;render()">
+    <span style="font-size:12px;color:#94a3b8">${monthDates.length} days this month · ${monthTotalSamp} samples · ${monthTotalTests} tests</span>
   </div>
   <div class="dash-stats">
     ${statCard('🧾','#dbeafe','#2563eb','Total Sample Records',total,true,'#3b82f6','All samples logged · every section')}
@@ -4169,8 +4212,47 @@ function renderDashboard(){
     <div class="date-card"><div class="dc-day">${dStr}</div><div class="dc-sub">${wd} · ${tStr}</div></div>
   </div>
   <div class="dash-row">
-    <div class="dash-card"><h3>Records by Section</h3><div class="donut-wrap">${_svgDonut(donutSegs)}<div class="donut-legend">${donutLegend||'<span style="color:#94a3b8">No data</span>'}</div></div></div>
-    <div class="dash-card"><h3>Entries — ${new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</h3>${daily.length?_svgBars(daily):'<div style="color:#94a3b8;padding:20px">No data</div>'}</div>
+    <div class="dash-card" style="min-width:0;flex:1.2">
+      <h3>📅 Daily Samples &amp; Tests — ${new Date(monthKey+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</h3>
+      <div style="max-height:280px;overflow-y:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="background:#1F3864;color:#fff;position:sticky;top:0">
+            <th style="padding:7px 10px;text-align:left">Date</th>
+            <th style="padding:7px 10px;text-align:center">🧪 Samples</th>
+            <th style="padding:7px 10px;text-align:center">🔬 Tests</th>
+          </tr></thead>
+          <tbody>${dailyTableRows}</tbody>
+          <tfoot><tr style="background:#f1f5f9;font-weight:700;border-top:2px solid #e2e8f0">
+            <td style="padding:7px 10px">Total</td>
+            <td style="padding:7px 10px;text-align:center;color:#2563eb">${monthTotalSamp}</td>
+            <td style="padding:7px 10px;text-align:center;color:#0891b2">${monthTotalTests}</td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="dash-card" style="min-width:0;flex:0.9">
+      <h3>🔍 Breakdown for ${pickedDate}</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:#1F3864;color:#fff">
+          <th style="padding:7px 10px;text-align:left">Section</th>
+          <th style="padding:7px 10px;text-align:center">Samples</th>
+          <th style="padding:7px 10px;text-align:center">Tests</th>
+        </tr></thead>
+        <tbody>${secRows}</tbody>
+        ${secBreakdown.length?`<tfoot><tr style="background:#f1f5f9;font-weight:700;border-top:2px solid #e2e8f0">
+          <td style="padding:7px 10px">Total</td>
+          <td style="padding:7px 10px;text-align:center;color:#2563eb">${secBreakdown.reduce((s,r)=>s+r.samples,0)}</td>
+          <td style="padding:7px 10px;text-align:center;color:#0891b2">${secBreakdown.reduce((s,r)=>s+r.tests,0)}</td>
+        </tr></tfoot>`:''}
+      </table>
+    </div>
+    <div class="dash-card" style="min-width:0;flex:0.9">
+      <h3>Records by Section</h3>
+      <div class="donut-wrap">${_svgDonut(donutSegs)}<div class="donut-legend">${donutLegend||'<span style="color:#94a3b8">No data</span>'}</div></div>
+    </div>
+  </div>
+  <div class="dash-row">
+    <div class="dash-card"><h3>${new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'})} Entries</h3>${daily.length?_svgBars(daily):'<div style="color:#94a3b8;padding:20px">No data</div>'}</div>
   </div>
   <div class="dash-bottom">
     <div class="dash-card"><h3>Recent Samples</h3><table class="dash-table"><thead><tr><th>Sample Point</th><th>Section</th><th>Date</th><th>Time</th></tr></thead><tbody>${rowsHTML}</tbody></table></div>
