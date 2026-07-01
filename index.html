@@ -2208,124 +2208,44 @@ function exportSolventReport(){
   if(!recs.length){toast('لا توجد عينات بهذا التاريخ');return;}
   const supervisor=recs[0].supervisor||'';
   const product=recs[0].product||'Annulus';
-  const fmtDate=selDate;
-  const wells=[...new Set(recs.map(r=>r.well||''))];
-  const wellNames=wells.join(' / ');
-  _ensureExcelJS().then(EJ=>{
-    const wb=new EJ.Workbook();wb.creator='KE Fayhaa LIMS';
-    const ws=wb.addWorksheet('Solvent Check',{
-      pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,
-        margins:{left:0.6,right:0.6,top:0.5,bottom:0.5}},
-      views:[{showGridLines:true}]
-    });
-    // Column widths matching original
-    ws.getColumn(1).width=32;
-    ws.getColumn(2).width=22;
-    ws.getColumn(3).width=18;
-    ws.getColumn(4).width=20;
-    ws.getColumn(5).width=12;
-    const hdrFill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1F3864'}};
-    const hdrFont={bold:true,color:{argb:'FFFFFFFF'},size:11,name:'Times New Roman'};
-    const bandFill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD9E1F2'}};
-    const nf={size:12,name:'Times New Roman'};
-    const bf={bold:true,size:12,name:'Times New Roman'};
-    const thin={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
-    const setBorder=(r,c)=>{ws.getCell(r,c).border=thin;};
-    // Logos - using string range anchoring (most compatible)
-    let _bocOk=false,_keOk=false;
-    try{
-      if(typeof BOC_LOGO_PNG==='string'&&BOC_LOGO_PNG.length>100){
-        const bocId=wb.addImage({base64:BOC_LOGO_PNG,extension:'png'});
-        ws.addImage(bocId,{tl:{col:4,row:0},ext:{width:130,height:65}});
-        _bocOk=true;
-      }
-    }catch(e){console.warn('BOC logo error',e);}
-    try{
-      if(typeof KE_LOGO_PNG==='string'&&KE_LOGO_PNG.length>100){
-        const keId=wb.addImage({base64:KE_LOGO_PNG,extension:'png'});
-        ws.addImage(keId,{tl:{col:0,row:0},ext:{width:160,height:45}});
-        _keOk=true;
-      }
-    }catch(e){console.warn('KE logo error',e);}
-    // Row 1: Title (merged A1:E1)
-    ws.mergeCells('A1:E1');
-    const t=ws.getCell('A1');
-    t.value='FAYHAA OIL FIELD LABORATORY TEST REPORT';
-    t.font={bold:true,size:14,name:'Times New Roman'};
-    t.alignment={horizontal:'center',vertical:'middle'};
-    ws.getRow(1).height=55;
-    // Row 2: empty
-    ws.getRow(2).height=8;
-    // Row 3: Product
-    ws.getCell('A3').value='Product';ws.getCell('A3').font=bf;
-    ws.getCell('B3').value=product;ws.getCell('B3').font=nf;
-    // Row 4: Sampled Date/Time
-    ws.getCell('A4').value='Sampled Date/Time';ws.getCell('A4').font=bf;
-    ws.getCell('B4').value=fmtDate;ws.getCell('B4').font=nf;
-    // Row 5: Analysis Date
-    ws.getCell('A5').value='Analysis Date';ws.getCell('A5').font=bf;
-    ws.getCell('B5').value=fmtDate;ws.getCell('B5').font=nf;
-    // Row 6: empty
-    // Row 7: Well name band (merged A7:E7)
-    ws.mergeCells('A7:E7');
-    const band=ws.getCell('A7');
-    band.value=wellNames;band.font={bold:true,size:12,name:'Times New Roman'};
-    band.fill=bandFill;band.alignment={horizontal:'left',vertical:'middle'};
-    // Row 8: Headers
-    const headers=['Sample Name','Date and Time','Specific garavity','DENSITY\ng/cm3 @ 60 F','PH'];
-    headers.forEach((h,i)=>{
-      const c=ws.getCell(8,i+1);c.value=h;c.font=hdrFont;c.fill=hdrFill;
-      c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.border=thin;
-    });
-    ws.getRow(8).height=35;
-    // Data rows (row 9+)
-    let dataRow=9;
-    recs.forEach(r=>{
-      ws.getCell(dataRow,1).value=r.well||'';ws.getCell(dataRow,1).font=nf;
-      ws.getCell(dataRow,2).value=fmtDate;ws.getCell(dataRow,2).font=nf;
-      ws.getCell(dataRow,3).value=r.sg!=null?Number(r.sg):'';ws.getCell(dataRow,3).font=nf;
-      ws.getCell(dataRow,3).numFmt='0.0000';
-      ws.getCell(dataRow,4).value=r.density60!=null?Number(r.density60):'';ws.getCell(dataRow,4).font=nf;
-      ws.getCell(dataRow,4).numFmt='0.0000';
-      ws.getCell(dataRow,5).value=r.ph!=null?Number(r.ph):'';ws.getCell(dataRow,5).font=nf;
-      ws.getCell(dataRow,5).numFmt='0.0';
-      for(let ci=1;ci<=5;ci++){ws.getCell(dataRow,ci).border=thin;ws.getCell(dataRow,ci).alignment={horizontal:'center'};}
-      dataRow++;
-    });
-    // Empty rows after data (to row 16)
-    while(dataRow<17)dataRow++;
-    // Row 17: Remark
-    ws.getCell(dataRow,1).value='Remark:';ws.getCell(dataRow,1).font=nf;
-    dataRow+=2;
-    // Row 19: KEBL
-    ws.getCell(dataRow,1).value='KEBL:';ws.getCell(dataRow,1).font=bf;
-    dataRow+=2;
-    // Row 21: Signed
-    ws.getCell(dataRow,1).value='Signed: ';ws.getCell(dataRow,1).font=nf;
-    dataRow+=3;
-    // Row 24: Lab Supervisor
-    ws.getCell(dataRow,1).value='Lab Supervisor: '+supervisor;ws.getCell(dataRow,1).font=nf;
-    dataRow++;
-    // Row 25-26: Certificate notice (merged)
-    ws.mergeCells(dataRow,1,dataRow+1,5);
-    ws.getCell(dataRow,1).value='This certificate shall not be reproduced, except in full, without written approval of the laboratory.';
-    ws.getCell(dataRow,1).font={size:9,name:'Times New Roman',italic:true};
-    ws.getCell(dataRow,1).alignment={wrapText:true,vertical:'top'};
-    dataRow+=2;
-    // Row 27: Footer (merged)
-    ws.mergeCells(dataRow,1,dataRow,5);
-    ws.getCell(dataRow,1).value='Kuwait Energy Basra Limited KEBL, Subsidiary of United Energy Group Limited, PAC - Block 9 Oil Field, FYHAA Laboratory, Basra - Iraq';
-    ws.getCell(dataRow,1).font={size:8,name:'Times New Roman'};
-    ws.getCell(dataRow,1).alignment={wrapText:true};
-    // Save
-    wb.xlsx.writeBuffer().then(buf=>{
-      const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.document'});
-      const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-      a.download='Solvent_Check_'+wellNames.replace(/[\/\\ ]/g,'-')+'_'+selDate+'.xlsx';
-      a.click();toast('📄 Solvent report — '+recs.length+' samples'+(_bocOk?' · BOC✓':'')+(_keOk?' · KE✓':''));
-    });
+  const wells=[...new Set(recs.map(r=>r.well||''))].join(' / ');
+  const rows=[
+    [{v:'FAYHAA OIL FIELD LABORATORY TEST REPORT',s:'tBig',m:4}],
+    [{v:'',s:'cell',m:4}],
+    [{v:'Product',s:'hdr'},{v:product,s:'val',m:3}],
+    [{v:'Sampled Date/Time',s:'hdr'},{v:selDate,s:'val',m:3}],
+    [{v:'Analysis Date',s:'hdr'},{v:selDate,s:'val',m:3}],
+    [{v:'',s:'cell',m:4}],
+    [{v:wells,s:'band',m:4}],
+    [{v:'Sample Name',s:'hdr'},{v:'Date and Time',s:'hdr'},{v:'Specific Gravity',s:'hdr'},{v:'DENSITY\ng/cm3 @ 60 F',s:'hdr'},{v:'pH',s:'hdr'}],
+    ...recs.map(r=>[
+      {v:r.well||'',s:'val'},{v:selDate,s:'val'},
+      {v:r.sg!=null?Number(r.sg).toFixed(4):'',s:'val'},
+      {v:r.density60!=null?Number(r.density60).toFixed(4):'',s:'val'},
+      {v:r.ph!=null?Number(r.ph).toFixed(1):'',s:'val'},
+    ]),
+    [{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],
+    [{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],
+    [{v:'Remark:',s:'lft',m:4}],
+    [{v:'',s:'cell',m:4}],
+    [{v:'KEBL:',s:'hdr',m:4}],
+    [{v:'',s:'cell',m:4}],
+    [{v:'Signed: ',s:'lft',m:4}],
+    [{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],
+    [{v:'Lab Supervisor: '+supervisor,s:'lft',m:4}],
+    [{v:'This certificate shall not be reproduced, except in full, without written approval of the laboratory.',s:'cell',m:4}],
+    [{v:'',s:'cell',m:4}],
+    [{v:'Kuwait Energy Basra Limited KEBL, Subsidiary of United Energy Group Limited, PAC - Block 9 Oil Field, FYHAA Laboratory, Basra - Iraq',s:'cell',m:4}],
+  ];
+  const images=[];
+  if(typeof BOC_LOGO_PNG==='string'&&BOC_LOGO_PNG.length>100)
+    images.push({png:BOC_LOGO_PNG,col:3.5,row:0.2,w:130,h:65});
+  const sheet={name:'Solvent Check',cols:[200,140,120,130,80],rows:rows,freeze:{rows:0,cols:0},images:images};
+  _ensureExcelJS().then(()=>{
+    _xlsxFromModels([sheet],'Solvent_Check_'+wells.replace(/[\/\/ ]/g,'-')+'_'+selDate+'.xlsx','📄 Solvent report — '+recs.length+' samples');
   }).catch(e=>toast('❌ '+e.message));
 }
+
 function renderGasWell(){
   const d=applyFilter(GASWELL()).filter(r=>r&&typeof r==='object');
   if(!d.length)return `<div class="empty">No gas well tests yet. Use ＋ Add Sample.</div>`;
