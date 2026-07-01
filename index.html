@@ -2219,10 +2219,10 @@ function exportSolventReport(){
       views:[{showGridLines:true}]
     });
     // Column widths matching original
-    ws.getColumn(1).width=28;
-    ws.getColumn(2).width=20;
+    ws.getColumn(1).width=32;
+    ws.getColumn(2).width=22;
     ws.getColumn(3).width=18;
-    ws.getColumn(4).width=18;
+    ws.getColumn(4).width=20;
     ws.getColumn(5).width=12;
     const hdrFill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1F3864'}};
     const hdrFont={bold:true,color:{argb:'FFFFFFFF'},size:11,name:'Times New Roman'};
@@ -2239,7 +2239,7 @@ function exportSolventReport(){
     // Row 1: Title (merged A1:E1)
     ws.mergeCells('A1:E1');
     const t=ws.getCell('A1');
-    t.value='                   FAYHAA OIL FIELD LABORATORY TEST REPORT';
+    t.value='FAYHAA OIL FIELD LABORATORY TEST REPORT';
     t.font={bold:true,size:14,name:'Times New Roman'};
     t.alignment={horizontal:'center',vertical:'middle'};
     ws.getRow(1).height=45;
