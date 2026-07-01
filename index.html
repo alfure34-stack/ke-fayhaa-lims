@@ -473,6 +473,15 @@ function safeLoad(){try{const r=localStorage.getItem(LS_KEY);if(r)MEM=JSON.parse
   try{const _canon=['cpfoilcoolingtower','gppcoolingtower'];const _nz=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');const _b=MEM.water.length;MEM.water=MEM.water.filter(r=>!(/cooling/i.test(String(r.point||''))&&_canon.indexOf(_nz(r.point))<0));if(MEM.water.length!==_b){localStorage.setItem(LS_KEY,JSON.stringify(MEM));}}catch(e){}
   // one-time: strip negative numeric values from PWI records (data entry errors)
   try{const _pwiNum=['b05_1','b1_2','b2_4','b4_10','b10_20','b20_30','b30_350','total','turb','tss','tds','h2s','oil','sg','ca','mg','na','sr','ba','k','fe','cl','po4','f','so4','hco3','co3'];let _ch=false;(MEM.pwi||[]).forEach(r=>{_pwiNum.forEach(k=>{if(r[k]!=null&&typeof r[k]==='number'&&r[k]<0){delete r[k];_ch=true;}});});if(_ch)localStorage.setItem(LS_KEY,JSON.stringify(MEM));}catch(e){}
+  // one-time: remove ghost well records (future/wrong dates) from MEM.well
+  try{
+    const _ghostWells=[{w:'FH-9',d:'2026-11-28'},{w:'FH-14',d:'2026-08-16'},{w:'FH-9',d:'2025-11-28'}];
+    const _wb=(MEM.well||[]).length;
+    MEM.well=(MEM.well||[]).filter(r=>!_ghostWells.some(g=>
+      String(r.well||'').toUpperCase()===g.w&&String(r.date||'').trim()===g.d
+    ));
+    if(MEM.well.length!==_wb)localStorage.setItem(LS_KEY,JSON.stringify(MEM));
+  }catch(e){}
 }
 function _initSeedIds(){
   // assign stable _id to every SEED record (called AFTER all SEEDs are defined)
