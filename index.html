@@ -4156,6 +4156,9 @@ function renderDashboard(){
   const qa=(ico,bg,label,fn)=>`<div class="quick-btn" onclick="${fn}"><span class="qb-ico" style="background:${bg}">${ico}</span>${label}</div>`;
   const admin=CURRENT&&CURRENT.role==='admin';
   return `
+  <div style="margin-bottom:10px">
+    <button class="tb-btn" onclick="exportMonthlyTests()" style="background:#0f766e;color:#fff;font-size:13px;padding:8px 18px">📋 Monthly Tests Report</button>
+  </div>
   <div class="dash-stats">
     ${statCard('🧾','#dbeafe','#2563eb','Total Sample Records',total,true,'#3b82f6','All samples logged · every section')}
     ${statCard('📊','#dcfce7','#16a34a','Samples Today',today,true,'#16a34a','Records entered today')}
