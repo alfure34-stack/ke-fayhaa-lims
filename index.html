@@ -466,6 +466,12 @@ function invSave(){try{localStorage.setItem(INV_KEY,JSON.stringify(INV));}catch(
 const INV_CMONTHS=INV_SEED.cmonths, INV_GMONTHS=INV_SEED.gmonths;
 
 const LS_KEY='ke_fayhaa_lims_v4';
+const LS_DEL_KEY='ke_fayhaa_lims_deleted';
+let DELETED_IDS=new Set();
+try{const d=localStorage.getItem(LS_DEL_KEY);if(d)DELETED_IDS=new Set(JSON.parse(d));}catch(e){}
+function _saveDeleted(){try{localStorage.setItem(LS_DEL_KEY,JSON.stringify([...DELETED_IDS]));}catch(e){}}
+function _isDeleted(id){return id&&DELETED_IDS.has(id);}
+function _markDeleted(id){if(id){DELETED_IDS.add(id);_saveDeleted();}}
 let MEM={oil:[],gas:[],well:[],water:[],pws:[],pwi:[],lpg:['Export LPG (123)','C3/C4 LPG Bullet (123)','LPG Bullet'],amine:[],cpf:[],hotoil:[],lubeoil:[],gaswell:[],h2s:[],coupon:[],asph_well:[],asph_cpf:[],solvent:[]};
 function safeLoad(){try{const r=localStorage.getItem(LS_KEY);if(r)MEM=JSON.parse(r);}catch(e){}
   ['oil','gas','well','water','pws','pwi','lpg','amine','cpf','hotoil','lubeoil','gaswell','h2s','coupon','solvent'].forEach(k=>{
@@ -1262,15 +1268,16 @@ function _clearSel(){SELECTED.clear();_refreshSelBar();render();}
 function _deleteSelected(){
   if(!SELECTED.size)return;
   if(!confirm(`حذف ${SELECTED.size} عينة؟`))return;
+  // mark all selected as permanently deleted
+  for(const id of SELECTED)_markDeleted(id);
   // remove from MEM
   for(const k of Object.keys(MEM)){const a=MEM[k];if(!Array.isArray(a))continue;MEM[k]=a.filter(r=>!SELECTED.has(r&&r._id));}
   // remove from SEED arrays
   const _seeds=[SEED_OIL,SEED_GAS,SEED_AMINE,SEED_LPG,SEED_WATER,SEED_PWI,SEED_PWS,
-    SEED_WELL,SEED_GASWELL,SEED_H2S,SEED_HOTOIL,SEED_ASPH,SEED_ASPHCPF,SEED_COUPON];
+    SEED_WELL,SEED_GASWELL,SEED_H2S,SEED_HOTOIL,SEED_ASPH,SEED_ASPHCPF,SEED_COUPON,SEED_SOLVENT];
   _seeds.forEach(arr=>{
     if(!Array.isArray(arr))return;
-    const toRemove=arr.filter(r=>r&&SELECTED.has(r._id));
-    toRemove.forEach(r=>{const i=arr.indexOf(r);if(i>=0)arr.splice(i,1);});
+    for(let i=arr.length-1;i>=0;i--){if(arr[i]&&SELECTED.has(arr[i]._id))arr.splice(i,1);}
   });
   SELECTED.clear();safePersist();_refreshSelBar();render();toast('🗑 تم الحذف');
 }
@@ -1302,6 +1309,7 @@ function deleteSample(id){
   const f=findById(id);if(!f)return;
   if(!confirm('Delete this sample? This cannot be undone.'))return;
   const delId=f.row&&f.row._id;
+  _markDeleted(delId);
   f.arr.splice(f.idx,1);
   safePersist();if(delId)cloudDelete(delId);render();toast('🗑 Sample deleted');
 }
@@ -1336,7 +1344,7 @@ function applyFilter(rows,extra){
     if(STATE.q){const q=STATE.q.toLowerCase();const hay=(r.date+' '+(r.well||'')+' '+(r.point||'')+' '+(r.section||'')+' '+(r.location||'')).toLowerCase();if(!hay.includes(q))return false;}
     if(extra&&!extra(r))return false;
     return true;
-  }).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  }).filter(r=>!_isDeleted(r._id)).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
 }
 
 /* ---------- KPIs ---------- */
