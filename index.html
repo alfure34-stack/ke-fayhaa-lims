@@ -471,7 +471,41 @@ let DELETED_IDS=new Set();
 try{const d=localStorage.getItem(LS_DEL_KEY);if(d)DELETED_IDS=new Set(JSON.parse(d));}catch(e){}
 function _saveDeleted(){try{localStorage.setItem(LS_DEL_KEY,JSON.stringify([...DELETED_IDS]));}catch(e){}}
 function _isDeleted(id){return id&&DELETED_IDS.has(id);}
-function _markDeleted(id){if(id){DELETED_IDS.add(id);_saveDeleted();}}
+function _markDeleted(id){
+  if(id){
+    DELETED_IDS.add(id);_saveDeleted();
+    // sync to cloud
+    if(cloudReady()&&navigator.onLine){
+      _pushDeletedToCloud();
+    }
+  }
+}
+async function _pushDeletedToCloud(){
+  if(!cloudReady())return;
+  try{
+    const ids=[...DELETED_IDS];
+    // upsert a special record with sec='_deleted'
+    await fetch(CLOUD.url+'/rest/v1/samples',{
+      method:'POST',
+      headers:{...cloudHeaders(),'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({id:'_deleted_ids',sec:'_deleted',data:{ids:ids}})
+    });
+  }catch(e){}
+}
+async function _pullDeletedFromCloud(){
+  if(!cloudReady())return;
+  try{
+    const res=await fetch(CLOUD.url+'/rest/v1/samples?id=eq._deleted_ids&select=data',{headers:cloudHeaders()});
+    if(!res.ok)return;
+    const rows=await res.json();
+    if(rows.length&&rows[0].data&&Array.isArray(rows[0].data.ids)){
+      const cloudDel=rows[0].data.ids;
+      let changed=false;
+      cloudDel.forEach(id=>{if(!DELETED_IDS.has(id)){DELETED_IDS.add(id);changed=true;}});
+      if(changed){_saveDeleted();if(typeof render==='function')render();}
+    }
+  }catch(e){}
+}
 let MEM={oil:[],gas:[],well:[],water:[],pws:[],pwi:[],lpg:['Export LPG (123)','C3/C4 LPG Bullet (123)','LPG Bullet'],amine:[],cpf:[],hotoil:[],lubeoil:[],gaswell:[],h2s:[],coupon:[],asph_well:[],asph_cpf:[],solvent:[]};
 function safeLoad(){try{const r=localStorage.getItem(LS_KEY);if(r)MEM=JSON.parse(r);}catch(e){}
   ['oil','gas','well','water','pws','pwi','lpg','amine','cpf','hotoil','lubeoil','gaswell','h2s','coupon','solvent'].forEach(k=>{
@@ -602,12 +636,13 @@ async function cloudPull(silent){
     const res=await fetch(CLOUD.url+'/rest/v1/samples?select=id,sec,data&limit=10000',{headers:cloudHeaders()});
     if(!res.ok){throw new Error('HTTP '+res.status+' '+(await res.text()).slice(0,120));}
     const recs=await res.json();
-    recordsToMem(recs);
+    recordsToMem(recs.filter(r=>r.sec!=='_deleted'));
     try{localStorage.setItem(LS_KEY,JSON.stringify(MEM));}catch(e){}
     CLOUD_STATUS='ok';CLOUD_MSG='pulled '+recs.length+' rows · '+new Date().toLocaleTimeString();
     refreshCloudBadge();
     if(typeof render==='function')render();
     if(!silent)toast('☁ Pulled '+recs.length+' rows from cloud');
+    _pullDeletedFromCloud();
   }catch(e){CLOUD_STATUS='error';CLOUD_MSG=String(e.message||e).slice(0,140);refreshCloudBadge();if(!silent)toast('⛔ Pull failed');}
 }
 // delete from cloud too when a row is removed
