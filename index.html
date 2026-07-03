@@ -1336,7 +1336,7 @@ function applyFilter(rows,extra){
     if(STATE.q){const q=STATE.q.toLowerCase();const hay=(r.date+' '+(r.well||'')+' '+(r.point||'')+' '+(r.section||'')+' '+(r.location||'')).toLowerCase();if(!hay.includes(q))return false;}
     if(extra&&!extra(r))return false;
     return true;
-  });
+  }).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
 }
 
 /* ---------- KPIs ---------- */
