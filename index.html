@@ -1808,9 +1808,10 @@ function renderPWI(){
 }
 
 /* ---------- LPG (Export LPG + C3/C4) ---------- */
-// RVP calculation from LPG composition (Raoult's Law)
+// RVP calculation from LPG composition (Raoult's Law) — Gauge pressure
 // Pure component vapor pressures at 100°F (37.8°C) in psia
 const _VP100F={C2:544,C3:190,iC4:72.2,nC4:51.6,neoC5:20.4,iC5:20.4,nC5:15.57,C6:4.96};
+const _ATM_PSI=14.696;
 function _calcRVP(r){
   const keys=['C2','C3','iC4','nC4','neoC5','iC5','nC5','C6'];
   let sum=0,hasData=false;
@@ -1818,7 +1819,7 @@ function _calcRVP(r){
     const v=parseFloat(r[k]);
     if(!isNaN(v)&&v>0){sum+=(v/100)*_VP100F[k];hasData=true;}
   });
-  return hasData?Math.round(sum*100)/100:null;
+  return hasData?Math.round((sum-_ATM_PSI)*100)/100:null;
 }
 function _calcRVPkPa(r){const p=_calcRVP(r);return p!=null?Math.round(p*6.89476*10)/10:null;}
 
@@ -1857,7 +1858,7 @@ function renderLPG(){
     manageCell(r)+`</tr>`;}).join('');
   return `<div class="tbl-wrap thead-lpg"><div class="tbl-scroll"><table><thead><tr>`+
     `<th class="h-ctr" title="Pick which Export LPG sample goes into the daily report">📋 Rpt</th><th class="h-txt">Date</th>${timeHead()}<th class="h-txt">Location</th>`+
-    `<th class="h-num">RVP psi</th><th class="h-num" style="background:#b45309">RVP Calc psi ⚙</th><th class="h-num" style="background:#b45309">RVP Calc kPa ⚙</th><th class="h-num">C2 %vol</th><th class="h-num">C3 %vol</th><th class="h-num">iC4 %vol</th><th class="h-num">nC4 %vol</th><th class="h-num">neoC5 %vol</th><th class="h-num">iC5 %vol</th><th class="h-num">nC5 %vol</th><th class="h-num">C6+ %vol</th><th class="h-num">C5+ %vol ⚙</th><th class="h-num">Density mg/cm³</th><th class="h-num">H₂S ppm</th><th class="h-num">Water Content ppm</th><th class="h-num">Total Sulphur mg/kg</th><th class="h-num">M.W ⚙</th><th class="h-num">C5+ M.W ⚙</th>${manageHead()}`+
+    `<th class="h-num">RVP psi</th><th class="h-num" style="background:#b45309">RVP Calc psig ⚙</th><th class="h-num" style="background:#b45309">RVP Calc kPa ⚙</th><th class="h-num">C2 %vol</th><th class="h-num">C3 %vol</th><th class="h-num">iC4 %vol</th><th class="h-num">nC4 %vol</th><th class="h-num">neoC5 %vol</th><th class="h-num">iC5 %vol</th><th class="h-num">nC5 %vol</th><th class="h-num">C6+ %vol</th><th class="h-num">C5+ %vol ⚙</th><th class="h-num">Density mg/cm³</th><th class="h-num">H₂S ppm</th><th class="h-num">Water Content ppm</th><th class="h-num">Total Sulphur mg/kg</th><th class="h-num">M.W ⚙</th><th class="h-num">C5+ M.W ⚙</th>${manageHead()}`+
     `</tr></thead><tbody>${body}</tbody></table></div></div>`+
     `<div class="spec-note">Export LPG (123) &amp; C3/C4 LPG Bullet · ${d.length} samples. ⚙ RVP Calc = Raoult's Law (Σ xi×VPi @100°F) · C5+, M.W auto-calculated. RVP 800kPa(S)/1000kPa(W) · Density 0.551–0.558(S)/0.534–0.551(W).</div>`;
 }
