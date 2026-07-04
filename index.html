@@ -1229,8 +1229,9 @@ function calcLPG(r){
 }
 function lpgRow(r){
   const p=calcLPG(r);
-  if(!p) return r;
-  return Object.assign({},r,{c5plus:p.c5plus, mw:p.mw, c5mw:p.c5mw, _calc:true});
+  const rvpCalcKpa=_calcRVPkPa(r);
+  if(!p) return Object.assign({},r,{rvp_calc:rvpCalcKpa});
+  return Object.assign({},r,{c5plus:p.c5plus, mw:p.mw, c5mw:p.c5mw, rvp_calc:rvpCalcKpa, _calc:true});
 }
 
 const DEC_KEY='ke_fayhaa_decimals_v1';
@@ -2745,7 +2746,7 @@ function _ssGasWideSheet(ym){
   const gDry=[{k:'N2',l:'N2',u:'%mol',s:'',dp:4},{k:'CO2',l:'CO2',u:'%mol',s:'',dp:4},{k:'C1',l:'C1',u:'%mol',s:'',dp:4},{k:'C2',l:'C2',u:'%mol',s:'',dp:4},{k:'C3',l:'C3',u:'%mol',s:'',dp:4},{k:'iC4',l:'i-C4',u:'%mol',s:'',dp:4},{k:'nC4',l:'n-C4',u:'%mol',s:'',dp:4},{k:'iC5',l:'i-C5',u:'%mol',s:'',dp:4},{k:'nC5',l:'n-C5',u:'%mol',s:'',dp:4},{k:'C6',l:'C6+',u:'%mol',s:'',dp:4},{k:'H2S',l:'H2S+Cos',u:'PPMmol',s:'',dp:1},{k:'WaterDP',l:'Water Dew Pt',u:'°C',s:'',dp:1},{k:'MW',l:'M.W',u:'',s:'',dp:2},{k:'HHV',l:'HHV',u:'BTU/scf',s:'',dp:2},{k:'LHV',l:'LHV',u:'BTU/scf',s:'',dp:2}];
   const amineL=[{k:'conc',l:'Conc',u:'%wt',s:'48-62',dp:1},{k:'water',l:'Water',u:'v%',s:'',dp:1},{k:'turb',l:'Turbidity',u:'NTU',s:'',dp:2},{k:'tss',l:'TSS',u:'mg/L',s:'<100',dp:1},{k:'h2s_mdea',l:'H2S/MDEA',u:'mol/kmol',s:'',dp:1},{k:'co2_mdea',l:'CO2/MDEA',u:'mol/kmol',s:'',dp:1},{k:'foam',l:'Foam',u:'sec',s:'',dp:0},{k:'ph',l:'pH',u:'',s:'',dp:2}];
   const amineR=[{k:'conc',l:'Conc',u:'%wt',s:'',dp:1},{k:'water',l:'Water',u:'v%',s:'',dp:1},{k:'h2s_mdea',l:'H2S/MDEA',u:'mol/kmol',s:'<250',dp:1},{k:'co2_mdea',l:'CO2/MDEA',u:'mol/kmol',s:'<250',dp:1},{k:'ph',l:'pH',u:'',s:'',dp:2}];
-  const lpg=[{k:'rvp',l:'RVP',u:'kPa',s:'800/1000',dp:1},{k:'C2',l:'C2',u:'%vol',s:'≤0.60',dp:3},{k:'C3',l:'C3',u:'%vol',s:'',dp:2},{k:'iC4',l:'i-C4',u:'%vol',s:'',dp:3},{k:'nC4',l:'n-C4',u:'%vol',s:'',dp:3},{k:'neoC5',l:'neo-C5',u:'%vol',s:'',dp:3},{k:'iC5',l:'i-C5',u:'%vol',s:'',dp:3},{k:'nC5',l:'n-C5',u:'%vol',s:'',dp:3},{k:'C6',l:'C6+',u:'%vol',s:'',dp:3},{k:'c5plus',l:'C5+ Content',u:'%vol',s:'≤2.0',dp:3},{k:'h2s',l:'H2S',u:'',s:'',dp:2},{k:'density',l:'Density',u:'mg/cm3',s:'0.551-0.558/0.534-0.551',dp:3},{k:'sulphur',l:'Total Sulphur',u:'wppm',s:'≤50',dp:1},{k:'freewater',l:'Free Water',u:'',s:'',dp:2},{k:'mw',l:'M.W',u:'',s:'',dp:2},{k:'c5mw',l:'C5+ M.W',u:'',s:'',dp:2}];
+  const lpg=[{k:'rvp',l:'RVP (Measured)',u:'kPa',s:'800/1000',dp:1},{k:'rvp_calc',l:'RVP (Calc)',u:'kPa',s:'800/1000',dp:1},{k:'C2',l:'C2',u:'%vol',s:'≤0.60',dp:3},{k:'C3',l:'C3',u:'%vol',s:'',dp:2},{k:'iC4',l:'i-C4',u:'%vol',s:'',dp:3},{k:'nC4',l:'n-C4',u:'%vol',s:'',dp:3},{k:'neoC5',l:'neo-C5',u:'%vol',s:'',dp:3},{k:'iC5',l:'i-C5',u:'%vol',s:'',dp:3},{k:'nC5',l:'n-C5',u:'%vol',s:'',dp:3},{k:'C6',l:'C6+',u:'%vol',s:'',dp:3},{k:'c5plus',l:'C5+ Content',u:'%vol',s:'≤2.0',dp:3},{k:'h2s',l:'H2S',u:'',s:'',dp:2},{k:'density',l:'Density',u:'mg/cm3',s:'0.551-0.558/0.534-0.551',dp:3},{k:'sulphur',l:'Total Sulphur',u:'wppm',s:'≤50',dp:1},{k:'freewater',l:'Free Water',u:'',s:'',dp:2},{k:'mw',l:'M.W',u:'',s:'',dp:2},{k:'c5mw',l:'C5+ M.W',u:'',s:'',dp:2}];
   const c3c4=[{k:'rvp',l:'RVP',u:'kPa',s:'',dp:1},{k:'C2',l:'C2',u:'%vol',s:'',dp:3},{k:'C3',l:'C3',u:'%vol',s:'',dp:2},{k:'iC4',l:'i-C4',u:'%vol',s:'',dp:3},{k:'nC4',l:'n-C4',u:'%vol',s:'',dp:3},{k:'neoC5',l:'neo-C5',u:'%vol',s:'',dp:3},{k:'sulphur',l:'Total Sulphur',u:'mg/kg',s:'',dp:1}];
   const lpgDesulf=[{k:'rvp',l:'RVP',u:'kPa',s:'',dp:1},{k:'C2',l:'C2',u:'%vol',s:'≤0.60',dp:3},{k:'C3',l:'C3',u:'%vol',s:'',dp:2},{k:'iC4',l:'i-C4',u:'%vol',s:'',dp:3},{k:'nC4',l:'n-C4',u:'%vol',s:'',dp:3},{k:'neoC5',l:'neo-C5',u:'%vol',s:'',dp:3},{k:'iC5',l:'i-C5',u:'%vol',s:'',dp:3},{k:'nC5',l:'n-C5',u:'%vol',s:'',dp:3},{k:'C6',l:'C6+',u:'%vol',s:'',dp:3},{k:'c5plus',l:'C5+ Content',u:'%vol',s:'≤2.0',dp:3},{k:'sulphur',l:'Total Sulphur',u:'wppm',s:'≤50',dp:1}];
   const blocks=[{t:'RAW GAS — Inlet CPF (118)',re:/118/,not:/sweet/i,cols:gRaw},{t:'CPF SWEET GAS (118)',re:/sweet/i,cols:gSweet},{t:'DRY GAS (119)',re:/119/,cols:g119s},{t:'EXPORT GAS ANALYSIS (Sweet Gas 120)',re:/120/,cols:g120},{t:'EXPORT LPG ANALYSIS (123)',lpg:true,cols:lpg},{t:'C3/C4 ANALYSIS (LPG Bullet)',bullet:true,cols:c3c4},{t:'SWEETENING — Lean Amine',amine:'lean',cols:amineL},{t:'SWEETENING — Rich Amine',amine:'rich',cols:amineR},{t:'NGL TREATMENT — Raw LPG (Outlet)',pt:/raw/i,cols:lpg},{t:'NGL TREATMENT — C3 (De-C3 Top)',pt:/de.?c3|c3.*top/i,cols:lpg},{t:'NGL TREATMENT — C4 (De-C4 Bottom)',pt:/de.?c4|c4.*bottom/i,cols:lpg},{t:'LPG DESULFURIZATION (Bullet)',pt:/desulf/i,cols:lpgDesulf}];
@@ -5204,7 +5205,8 @@ function buildDailyAOA(d){
   A.push(['EXPORT LPG ANALYSIS']);
   A.push(['Test','Method / Standard','Unit',lpgTime,'Target / Limit','Remarks']);
   pushSpec([
-    ['RVP','ASTM 1267','kPa',lx.rvp,'800kPa (Summer) / 1000kPa (Winter)',''],
+    ['RVP (Measured)','ASTM 1267','kPa',lx.rvp,'800kPa (Summer) / 1000kPa (Winter)',''],
+    ['RVP (Calculated)','Raoult\'s Law','kPa',_calcRVPkPa(lxRec),'800kPa (Summer) / 1000kPa (Winter)','From composition'],
     ['C2','GC','%vol',lx.C2,'≤ 0.60%vol',''],
     ['C3','GC','%vol',lx.C3,'30~40%vol (Summer) / 60~70%vol (Winter)',''],
     ['i-C4','GC','%vol',lx.iC4,'-',''],
