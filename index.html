@@ -4471,8 +4471,13 @@ function _dashSecData(){
     {k:'oil',l:'Oil',f:OIL,c:'#1F4E79'},{k:'gas',l:'Gas',f:GAS,c:'#c2410c'},
     {k:'water',l:'Water',f:WATER,c:'#0e7490'},{k:'lpg',l:'LPG',f:LPG,c:'#a16207'},
     {k:'amine',l:'Amine',f:AMINE,c:'#0369a1'},{k:'wells',l:'Wells',f:WELL,c:'#7e22ce'},
-    {k:'pws',l:'PWS',f:PWS,c:'#0f766e'},{k:'pwi',l:'PWI',f:PWI,c:'#7c2d12'},
-    {k:'hotoil',l:'Hot Oil',f:HOTOIL,c:'#9d174d'}
+    {k:'gaswell',l:'Gas Wells',f:typeof GASWELL!=='undefined'?GASWELL:()=>[],c:'#b45309'},
+    {k:'pwi',l:'PWI',f:PWI,c:'#7c2d12'},{k:'pws',l:'PWS',f:PWS,c:'#0f766e'},
+    {k:'h2s',l:'H₂S',f:typeof H2S!=='undefined'?H2S:()=>[],c:'#dc2626'},
+    {k:'coupon',l:'Coupon',f:COUPON,c:'#065f46'},
+    {k:'solvent',l:'Solvent',f:SOLVENT,c:'#92400e'},
+    {k:'hotoil',l:'Hot Oil',f:HOTOIL,c:'#9d174d'},
+    {k:'asph',l:'ADT',f:typeof ASPH!=='undefined'?ASPH:()=>[],c:'#4338ca'},
   ];
   return list.map(s=>{let arr=[];try{arr=s.f()||[];}catch(e){}return {k:s.k,l:s.l,c:s.c,n:arr.length,arr:arr};});
 }
