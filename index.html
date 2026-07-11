@@ -5302,7 +5302,19 @@ function exportWord(){closeMenu();let html=`<html xmlns:o='urn:schemas-microsoft
 /* =========================================================
    DAILY REPORT — professional single-day Excel + PDF
    ========================================================= */
-function reportDate(){if(STATE.from)return STATE.from;const ds=OIL().map(r=>r.date).filter(Boolean).sort();return ds.length?ds[ds.length-1]:todayISO();}
+function reportDate(){
+  if(STATE.from)return STATE.from;
+  // find latest date that has real data across all sections
+  const allDates=new Set();
+  [OIL(),GAS(),AMINE(),LPG(),WATER(),PWI(),WELL(),typeof HOTOIL!=='undefined'?HOTOIL():[]].forEach(arr=>{
+    (arr||[]).forEach(r=>{if(r.date)allDates.add(r.date);});
+  });
+  const sorted=[...allDates].sort();
+  // filter out future dates
+  const today=todayISO();
+  const valid=sorted.filter(d=>d<=today);
+  return valid.length?valid[valid.length-1]:todayISO();
+}
 function dayOil(d){return OIL().find(r=>r.date===d&&isSkid(r));}
 /* ---- choose which gas sample goes into the daily report (when >1 per date/stream) ---- */
 let REPORT_GAS_PICK={};try{REPORT_GAS_PICK=JSON.parse(localStorage.getItem('reportGasPick')||'{}');}catch(e){REPORT_GAS_PICK={};}
