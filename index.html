@@ -5315,7 +5315,17 @@ function reportDate(){
   const valid=sorted.filter(d=>d<=today);
   return valid.length?valid[valid.length-1]:todayISO();
 }
-function dayOil(d){return OIL().find(r=>r.date===d&&isSkid(r));}
+function dayOil(d){
+  const candidates=OIL().filter(r=>r.date===d&&isSkid(r));
+  if(!candidates.length)return null;
+  if(candidates.length===1)return candidates[0];
+  // pick the record with most non-null fields
+  return candidates.reduce((best,r)=>{
+    const score=Object.keys(r).filter(k=>k!=='_id'&&k!=='date'&&k!=='point'&&k!=='time'&&r[k]!=null&&r[k]!=='').length;
+    const bestScore=Object.keys(best).filter(k=>k!=='_id'&&k!=='date'&&k!=='point'&&k!=='time'&&best[k]!=null&&best[k]!=='').length;
+    return score>bestScore?r:best;
+  });
+}
 /* ---- choose which gas sample goes into the daily report (when >1 per date/stream) ---- */
 let REPORT_GAS_PICK={};try{REPORT_GAS_PICK=JSON.parse(localStorage.getItem('reportGasPick')||'{}');}catch(e){REPORT_GAS_PICK={};}
 function _gsig(r){return r&&r._id?('id:'+r._id):('g|'+[r.date,r.section,r.time||'',r.N2,r.CO2,r.C1,r.H2S].join('|'));}
