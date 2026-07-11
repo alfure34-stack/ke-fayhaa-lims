@@ -1610,7 +1610,7 @@ function spRowStyle(name){const c=spColor(name);return c?` style="background:${c
 
 /* ---------- OIL ---------- */
 const SKID_NAME='Export Metering Skid Auto Sampler';
-const isSkid=r=>(r.point==null||r.point===SKID_NAME||r.point==='Export Auto Sampler');
+const isSkid=r=>{const p=String(r.point||'').toLowerCase();return !p||p===SKID_NAME.toLowerCase()||p==='export auto sampler'||/export.*metering|metering.*skid|auto.*sampler/i.test(r.point||'');};
 function renderOil(){
   if(STATE.tab==='other'){
     // Manual / Tanks / Stabilizers — Salt & BS&W only
