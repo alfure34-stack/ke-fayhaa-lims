@@ -1677,7 +1677,7 @@ function renderOil(){
 const GLIM={raw:{N2:'≤ 1',H2S:'≤ 5000'},sweet:{N2:'≤ 1',CO2:'≤ 2',H2S:'≤ 3.5'},dry119:{N2:'≤ 1',CO2:'≤ 2'},exp120:{N2:'≤ 1',CO2:'≤ 2',C1:'≥ 80',C2:'≤ 15',C3:'≤ 0.5',iC4:'≤ 0.25',nC4:'≤ 0.25',iC5:'≤ 0.25',nC5:'≤ 0.25',C6:'≤ 0.25',H2S:'≤ 3.5',HCDew:'≤ -27',WaterDP:'≤ -30',HHV:'≤ 1150',LHV:'≤ 1150'}};
 function glimFor(section){const s=String(section||'').toLowerCase();if(/120/.test(s))return GLIM.exp120;if(/sweet/.test(s))return GLIM.sweet;if(/119|dry/.test(s))return GLIM.dry119;if(/118|raw|inlet/.test(s))return GLIM.raw;return {};}
 function renderGas(){
-  const d=applyFilter(GAS());
+  const d=applyFilter(GAS()).filter(r=>!/^LPG\b/i.test(r.section||r.point||''));
   if(!d.length)return `<div class="empty">No gas samples in range.</div>`;
   const body=d.map(r=>{
     const L=glimFor(r.section);const gb=(k,v)=>overLimit(v,L[k]);
