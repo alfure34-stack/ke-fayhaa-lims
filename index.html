@@ -1292,8 +1292,17 @@ SEED_AMINE.push(
 const CUSTOM_SP_KEY='ke_fayhaa_custom_sp_v1';
 let CUSTOM_SP={};
 try{const r=localStorage.getItem(CUSTOM_SP_KEY);if(r)CUSTOM_SP=JSON.parse(r);}catch(e){CUSTOM_SP={};}
+// cleanup: remove LPG points from gas custom list
+try{if(CUSTOM_SP.gas){CUSTOM_SP.gas=CUSTOM_SP.gas.filter(n=>!/^LPG\b/i.test(n));saveCustomSP();}}catch(e){}
 function saveCustomSP(){try{localStorage.setItem(CUSTOM_SP_KEY,JSON.stringify(CUSTOM_SP));}catch(e){}}
-function spList(sec){const base=SP_NAMES[sec]||[];const extra=CUSTOM_SP[sec]||[];const all=base.concat(extra);return all.filter((v,i)=>all.indexOf(v)===i);}
+function spList(sec){
+  const base=SP_NAMES[sec]||[];const extra=CUSTOM_SP[sec]||[];
+  let all=base.concat(extra).filter((v,i,a)=>a.indexOf(v)===i);
+  // prevent LPG points from showing in Gas section and vice versa
+  if(sec==='gas')all=all.filter(n=>!/^LPG\b/i.test(n));
+  if(sec==='lpg')all=all.filter(n=>!/^(Export Gas|Dry Gas|Raw Gas|CPF Sweet|Amine)/i.test(n));
+  return all;
+}
 function rememberSP(sec,name){
   if(!name)return;
   const base=SP_NAMES[sec]||[];
