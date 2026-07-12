@@ -2404,6 +2404,7 @@ function renderSolvent(){
     <td class="num">${cell(r.sg,4,'sg')}</td>
     <td class="num">${cell(r.density60,4,'density60')}</td>
     <td class="num">${cell(r.ph,1,'ph')}</td>
+    <td class="num">${cell(r.hcl,2,'hcl')}</td>
     <td class="txt">${r.supervisor||''}</td>
     <td class="txt">${r.remark||''}</td>
     ${manageCell(r)}
@@ -2421,7 +2422,7 @@ function renderSolvent(){
   </div>`+
   `<div class="tbl-wrap thead-solvent"><div class="tbl-scroll"><table><thead><tr>`+
   `<th class="h-txt">Date</th><th class="h-txt">Well</th><th class="h-txt">Product</th>`+
-  `<th class="h-num">SG</th><th class="h-num">Density @60°F</th><th class="h-num">pH</th>`+
+  `<th class="h-num">SG</th><th class="h-num">Density @60°F</th><th class="h-num">pH</th><th class="h-num">HCl %</th>`+
   `<th class="h-txt">Supervisor</th><th class="h-txt">Remark</th>${manageHead()}`+
   `</tr></thead><tbody>${body}</tbody></table></div></div>`+
   `<div class="spec-note">Solvent Check Report · ${d.length} records. اختر تاريخ واضغط Export لسحب تقرير بكل عينات ذلك اليوم.</div>`;
@@ -2434,37 +2435,38 @@ function exportSolventReport(){
   const product=recs[0].product||'Annulus';
   const wells=[...new Set(recs.map(r=>r.well||''))].join(' / ');
   const rows=[
-    [{v:'FAYHAA OIL FIELD LABORATORY TEST REPORT',s:'tBig',m:4}],
-    [{v:'',s:'cell',m:4}],
+    [{v:'FAYHAA OIL FIELD LABORATORY TEST REPORT',s:'tBig',m:5}],
+    [{v:'',s:'cell',m:5}],
     [{v:'Product',s:'hdr'},{v:product,s:'val',m:3}],
     [{v:'Sampled Date/Time',s:'hdr'},{v:selDate,s:'val',m:3}],
     [{v:'Analysis Date',s:'hdr'},{v:selDate,s:'val',m:3}],
-    [{v:'',s:'cell',m:4}],
-    [{v:wells,s:'band',m:4}],
-    [{v:'Sample Name',s:'hdr'},{v:'Date and Time',s:'hdr'},{v:'Specific Gravity',s:'hdr'},{v:'DENSITY\ng/cm3 @ 60 F',s:'hdr'},{v:'pH',s:'hdr'}],
+    [{v:'',s:'cell',m:5}],
+    [{v:wells,s:'band',m:5}],
+    [{v:'Sample Name',s:'hdr'},{v:'Date and Time',s:'hdr'},{v:'Specific Gravity',s:'hdr'},{v:'DENSITY\ng/cm3 @ 60 F',s:'hdr'},{v:'pH',s:'hdr'},{v:'HCl Conc.\n%',s:'hdr'}],
     ...recs.map(r=>[
       {v:r.well||'',s:'val'},{v:selDate,s:'val'},
       {v:r.sg!=null?Number(r.sg).toFixed(4):'',s:'val'},
       {v:r.density60!=null?Number(r.density60).toFixed(4):'',s:'val'},
       {v:r.ph!=null?Number(r.ph).toFixed(1):'',s:'val'},
+      {v:r.hcl!=null?Number(r.hcl).toFixed(2):'',s:'val'},
     ]),
-    [{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],
-    [{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],
-    [{v:'Remark:',s:'lft',m:4}],
-    [{v:'',s:'cell',m:4}],
-    [{v:'KEBL:',s:'hdr',m:4}],
-    [{v:'',s:'cell',m:4}],
-    [{v:'Signed: ',s:'lft',m:4}],
-    [{v:'',s:'cell',m:4}],[{v:'',s:'cell',m:4}],
-    [{v:'Lab Supervisor: '+supervisor,s:'lft',m:4}],
-    [{v:'This certificate shall not be reproduced, except in full, without written approval of the laboratory.',s:'cell',m:4}],
-    [{v:'',s:'cell',m:4}],
-    [{v:'Kuwait Energy Basra Limited KEBL, Subsidiary of United Energy Group Limited, PAC - Block 9 Oil Field, FYHAA Laboratory, Basra - Iraq',s:'cell',m:4}],
+    [{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],
+    [{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],
+    [{v:'Remark:',s:'lft',m:5}],
+    [{v:'',s:'cell',m:5}],
+    [{v:'KEBL:',s:'hdr',m:5}],
+    [{v:'',s:'cell',m:5}],
+    [{v:'Signed: ',s:'lft',m:5}],
+    [{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],
+    [{v:'Lab Supervisor: '+supervisor,s:'lft',m:5}],
+    [{v:'This certificate shall not be reproduced, except in full, without written approval of the laboratory.',s:'cell',m:5}],
+    [{v:'',s:'cell',m:5}],
+    [{v:'Kuwait Energy Basra Limited KEBL, Subsidiary of United Energy Group Limited, PAC - Block 9 Oil Field, FYHAA Laboratory, Basra - Iraq',s:'cell',m:5}],
   ];
   const images=[];
   if(typeof BOC_LOGO_PNG==='string'&&BOC_LOGO_PNG.length>100)
     images.push({png:BOC_LOGO_PNG,col:3.5,row:0.2,w:130,h:65});
-  const sheet={name:'Solvent Check',cols:[200,140,120,130,80],rows:rows,freeze:{rows:0,cols:0},images:images};
+  const sheet={name:'Solvent Check',cols:[200,140,120,130,80,80],rows:rows,freeze:{rows:0,cols:0},images:images};
   _ensureExcelJS().then(()=>{
     _xlsxFromModels([sheet],'Solvent_Check_'+wells.replace(/[\/\/ ]/g,'-')+'_'+selDate+'.xlsx','📄 Solvent report — '+recs.length+' samples');
   }).catch(e=>toast('❌ '+e.message));
@@ -5067,7 +5069,7 @@ function openAdd(editRow){
     </div></div>`;
   }
   else if(S==='coupon')b=`<div class="section-label">Corrosion Coupon Details</div><div class="grid3">${field('Date','f_date','date')}${field('CC Tag No.','f_tag','text')}${field('Initial Weight (g)','f_initial_wt')}${field('Final Weight (g)','f_final_wt')}${field('Notes','f_notes','text')}</div>`;
-  else if(S==='solvent')b=`<div class="section-label">Solvent Check</div><div class="grid3">${field('Date','f_date','date')}${field('Well No.','f_well','text')}${field('Product','f_product','text')}${field('Specific Gravity','f_sg')}${field('Density @60°F g/cm³','f_density60')}${field('pH','f_ph')}<div class="ff"><label class="fl">Lab Supervisor</label><select class="inp" id="f_supervisor"><option value="Hamzah Al-Mousa">Hamzah Al-Mousa</option><option value="Dr. Muntadher Luaibi">Dr. Muntadher Luaibi</option></select></div>${field('Remark','f_remark','text')}</div>`;
+  else if(S==='solvent')b=`<div class="section-label">Solvent Check</div><div class="grid3">${field('Date','f_date','date')}${field('Well No.','f_well','text')}${field('Product','f_product','text')}${field('Specific Gravity','f_sg')}${field('Density @60°F g/cm³','f_density60')}${field('pH','f_ph')}${field('HCl Conc. %','f_hcl')}<div class="ff"><label class="fl">Lab Supervisor</label><select class="inp" id="f_supervisor"><option value="Hamzah Al-Mousa">Hamzah Al-Mousa</option><option value="Dr. Muntadher Luaibi">Dr. Muntadher Luaibi</option></select></div>${field('Remark','f_remark','text')}</div>`;
   else if(S==='gaswell')b=`<div class="section-label">Sample</div><div class="grid3">${field('Date','f_date','date')}${field('Time','f_time','time')}${spField('gaswell','Well')}</div><div class="section-label">Well & Formation</div><div class="grid3"><div class="ff"><label class="fl">Formation / Layer</label><select class="inp" id="f_formation"><option value="">—</option><option>Mishrif</option><option>Yamama</option><option>Zubair</option><option>Nahr Umr</option><option>Hartha</option><option>Sadi</option><option>Tanuma</option><option>Khasib</option><option>Other</option></select></div></div><div class="section-label">Gas Well Analysis</div><div class="grid3">${field('COS ppm','f_cos')}${field('CH4S ppm','f_ch4s')}${field('CS2 ppm','f_cs2')}${field('H₂S ppm','f_h2s')}${field('CO₂ V%','f_CO2')}</div>`;
   else b=`<div class="section-label">Sample</div><div class="grid3">${field('Date','f_date','date')}${field('Time','f_time','time')}${spField('pwi','Sample Point')}</div><div class="section-label">Particle Size Distribution (counts) — Total auto-sums</div><div class="grid3">${pfield('0.5–1µm','f_b05_1')}${pfield('1–2µm','f_b1_2')}${pfield('2–4µm','f_b2_4')}${pfield('4–10µm','f_b4_10')}${pfield('10–20µm','f_b10_20')}${pfield('20–30µm','f_b20_30')}${pfield('30–350µm','f_b30_350')}</div><div class="section-label">Total (⚙ live)</div><div class="grid3"><div class="ff"><label class="fl">Total Count ⚙</label><input class="inp" id="f_total" readonly style="background:#fff7ed;font-weight:800"></div></div><div class="section-label">Water Quality (optional)</div><div class="grid3">${field('Turbidity NTU','f_turb')}${field('TSS ppm','f_tss')}${field('pH','f_ph')}${field('TDS mg/L','f_tds')}${field('H₂S mg/L','f_h2s')}${field('Oil mg/L','f_oil')}${field('SG @20°C','f_sg')}</div><div class="section-label">Ions mg/l (optional)</div><div class="grid3">${field('Ca','f_ca')}${field('Mg','f_mg')}${field('Na','f_na')}${field('Sr','f_sr')}${field('Ba','f_ba')}${field('K','f_k')}${field('Fe','f_fe')}${field('Cl','f_cl')}${field('PO₄','f_po4')}${field('F','f_f')}${field('SO₄','f_so4')}${field('HCO₃','f_hco3')}${field('CO₃','f_co3')}</div>`;
   const titles={oil:'Oil Analysis',gas:'Gas Analysis',wells:'FSF Well',water:'RO Water',pws:'PWS',pwi:'PWI Water',lpg:'LPG',amine:'Amine',cpf:'CPF Inlet Manifold',hotoil:'Hot Oil',lubeoil:'Lube Oil',gaswell:'FSF Gas Well',coupon:'Corrosion Coupon',solvent:'Solvent Check',asph:'Asphaltene ADT'};
@@ -5112,7 +5114,7 @@ function saveSample(addAnother){
   else if(S==='lubeoil'){const pdfData=gv('f_particle_pdf_data');const pdfName=gv('f_particle_pdf_name');const o={time:gv('f_time'),point:getSP(),density:gv('f_density'),visc100:gv('f_visc100'),visc40:gv('f_visc40'),rvp:gv('f_rvp'),flash:gv('f_flash'),moisture:gv('f_moisture'),particle:gv('f_particle'),appearance:gv('f_appearance')};if(pdfData){o.pdf=pdfData;o.pdfName=pdfName||'report.pdf';}Object.assign(r,o);}
   else if(S==='h2s')Object.assign(r,{time:gv('f_time'),point:getSP(),h2s:gv('f_h2s'),cos:gv('f_cos'),merc:gv('f_merc')});
   else if(S==='coupon'){const wi=gv('f_initial_wt'),wf=gv('f_final_wt');const wl=(wi!==''&&wf!==''&&!isNaN(wi)&&!isNaN(wf))?Math.round((parseFloat(wi)-parseFloat(wf))*10000)/10000:null;Object.assign(r,{tag:gv('f_tag'),initial_wt:wi!==''?parseFloat(wi):null,final_wt:wf!==''?parseFloat(wf):null,weight_loss:wl,notes:gv('f_notes')});}
-  else if(S==='solvent')Object.assign(r,{well:gv('f_well'),product:gv('f_product')||'Annulus',sg:gv('f_sg'),density60:gv('f_density60'),ph:gv('f_ph'),supervisor:gv('f_supervisor'),remark:gv('f_remark')});
+  else if(S==='solvent')Object.assign(r,{well:gv('f_well'),product:gv('f_product')||'Annulus',sg:gv('f_sg'),density60:gv('f_density60'),ph:gv('f_ph'),hcl:gv('f_hcl'),supervisor:gv('f_supervisor'),remark:gv('f_remark')});
   else if(S==='asph'){
     const typ=gv('f_adt_type')||'cpf';
     if(typ==='well'){
