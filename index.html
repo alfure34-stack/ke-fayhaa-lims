@@ -4430,7 +4430,7 @@ const SOLVENT=()=>{
   const seen=new Set();const out=[];
   for(let i=all.length-1;i>=0;i--){
     const r=all[i];if(!r||typeof r!=='object')continue;
-    const key=(r.date||'')+'|'+String(r.well||'').toLowerCase();
+    const key=(r.date||'')+'|'+String(r.well||'').toLowerCase()+'|'+String(r.product||'')+'|'+(r._id||i);
     if(seen.has(key))continue;seen.add(key);out.push(r);
   }
   out.reverse();return out;
