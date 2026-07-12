@@ -510,6 +510,7 @@ tbody tr:hover{background:var(--surface-2)!important}
 .date-card{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:14px!important}
 
 </style>
+<!-- v245-deploy-1783848982 -->
 </head>
 <body>
 <div id="app"></div>
@@ -2655,7 +2656,8 @@ function _buildOfficialCore(date,big,logoSrc){
 function printOfficialReport(){
   const date=(typeof reportDate==='function'?reportDate():todayISO());
   const {core,styles}=_buildOfficialCore(date);
-  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>KE Fayhaa Daily Report ${date}</title><style>@page{size:A4 landscape;margin:9mm}${styles}</style></head><body>${core}
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>KE Fayhaa Daily Report ${date}</title><style>@page{size:A4 landscape;margin:9mm}${styles}</style><!-- v245-deploy-1783848982 -->
+</head><body>${core}
   <scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
   </body></html>`;
   const w=window.open('','_blank');
@@ -2671,13 +2673,15 @@ function _styledXlsMHT(sheets,fname,msg){
   const wbXml=`<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>`+
     sheets.map((s,i)=>`<x:ExcelWorksheet><x:Name>${sname(s.name,i)}</x:Name><x:WorksheetSource HRef="${sfile(i)}"/></x:ExcelWorksheet>`).join('')+
     `</x:ExcelWorksheets><x:ActiveSheet>0</x:ActiveSheet></x:ExcelWorkbook></xml><![endif]-->`;
-  const mainHtml=`<html ${NS}><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">${wbXml}</head><body></body></html>`;
+  const mainHtml=`<html ${NS}><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">${wbXml}<!-- v245-deploy-1783848982 -->
+</head><body></body></html>`;
   const B='----=_FayhaaXLSPart';
   const L=['MIME-Version: 1.0','Content-Type: multipart/related; boundary="'+B+'"; type="text/html"','',
     '--'+B,'Content-Type: text/html; charset="utf-8"','Content-Location: report.htm','',mainHtml,''];
   sheets.forEach((s,i)=>{
     const doc=`<html ${NS}><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><style>${s.styles||''}</style>
 <!--[if gte mso 9]><xml><x:WorksheetOptions><x:DoNotDisplayGridlines/><x:Print><x:ValidPrinterInfo/></x:Print></x:WorksheetOptions></xml><![endif]-->
+<!-- v245-deploy-1783848982 -->
 </head><body>${s.body}</body></html>`;
     L.push('--'+B,'Content-Type: text/html; charset="utf-8"','Content-Location: '+sfile(i),'',doc,'');
   });
@@ -5315,7 +5319,8 @@ function saveNotifSettings(){
 function resetNotif(){NOTIF=JSON.parse(JSON.stringify(NOTIF_DEFAULT));saveNotif();closeAdd();render();toast('↺ Notifications reset to defaults');}
 function exportExcel(){closeMenu();const wb=XLSX.utils.book_new();ALL_SECS.forEach(s=>{const sh=buildSheet(s);XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([sh.h,...sh.rows]),sh.name);});XLSX.writeFile(wb,'KE_Fayhaa_LIMS.xlsx');toast('✓ Excel exported');}
 function exportPDF(){closeMenu();const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape'});const sh=buildSheet(STATE.section);const colors={oil:[31,56,100],gas:[154,52,18],wells:[107,33,168],water:[14,116,144],pws:[17,94,89]};doc.setFontSize(15);doc.setTextColor(31,56,100);doc.text('Kuwait Energy — Fayhaa Laboratory LIMS',14,15);doc.setFontSize(10);doc.setTextColor(100);doc.text(sh.name+'  ·  '+todayISO(),14,21);doc.autoTable({head:[sh.h],body:sh.rows,startY:26,styles:{fontSize:7,cellPadding:1.6},headStyles:{fillColor:colors[STATE.section],textColor:255,fontStyle:'bold'},alternateRowStyles:{fillColor:[245,248,252]}});doc.save('KE_Fayhaa_'+sh.name.replace(/ /g,'_')+'.pdf');toast('✓ PDF exported');}
-function exportWord(){closeMenu();let html=`<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'Segoe UI',Arial,sans-serif}h1{color:#1F3864}h2{color:#2E75B6;border-bottom:2px solid #e2e8f0;padding-bottom:4pt}table{border-collapse:collapse;width:100%;font-size:8pt;margin-top:6pt}th{background:#1F3864;color:#fff;padding:5px;text-align:left;border:1px solid #1F3864}td{padding:4px;border:1px solid #d0d7e2}tr:nth-child(even){background:#f5f8fc}</style></head><body><h1>Kuwait Energy — Fayhaa Laboratory LIMS</h1><p>CPF Laboratory Report · ${todayISO()}</p>`;ALL_SECS.forEach(s=>{const sh=buildSheet(s);html+=`<h2>${sh.name}</h2><table><tr>${sh.h.map(x=>`<th>${x}</th>`).join('')}</tr>`;sh.rows.forEach(r=>{html+=`<tr>${r.map(c=>`<td>${c===''?'–':c}</td>`).join('')}</tr>`;});html+=`</table>`;});html+=`</body></html>`;const blob=new Blob(['\ufeff',html],{type:'application/msword'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='KE_Fayhaa_LIMS_Report.doc';a.click();URL.revokeObjectURL(url);toast('✓ Word exported');}
+function exportWord(){closeMenu();let html=`<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'Segoe UI',Arial,sans-serif}h1{color:#1F3864}h2{color:#2E75B6;border-bottom:2px solid #e2e8f0;padding-bottom:4pt}table{border-collapse:collapse;width:100%;font-size:8pt;margin-top:6pt}th{background:#1F3864;color:#fff;padding:5px;text-align:left;border:1px solid #1F3864}td{padding:4px;border:1px solid #d0d7e2}tr:nth-child(even){background:#f5f8fc}</style><!-- v245-deploy-1783848982 -->
+</head><body><h1>Kuwait Energy — Fayhaa Laboratory LIMS</h1><p>CPF Laboratory Report · ${todayISO()}</p>`;ALL_SECS.forEach(s=>{const sh=buildSheet(s);html+=`<h2>${sh.name}</h2><table><tr>${sh.h.map(x=>`<th>${x}</th>`).join('')}</tr>`;sh.rows.forEach(r=>{html+=`<tr>${r.map(c=>`<td>${c===''?'–':c}</td>`).join('')}</tr>`;});html+=`</table>`;});html+=`</body></html>`;const blob=new Blob(['\ufeff',html],{type:'application/msword'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='KE_Fayhaa_LIMS_Report.doc';a.click();URL.revokeObjectURL(url);toast('✓ Word exported');}
 
 /* =========================================================
    DAILY REPORT — professional single-day Excel + PDF
@@ -5734,7 +5739,8 @@ function monthlySlideshow(ym){
   .nav .dot{width:11px;height:11px;border-radius:50%;background:#94a3b8;cursor:pointer}
   .nav .dot.on{background:#fff;transform:scale(1.15)}
   @media print{.topbar,.nav{display:none}.deck{margin:0;padding:0}.slide{display:block!important;min-height:auto;max-width:none;page-break-after:always;box-shadow:none}}
-  </style></head><body>
+  </style><!-- v245-deploy-1783848982 -->
+</head><body>
   <div class="topbar">${tabs}</div>
   <div class="deck">${slidesHTML}</div>
   <div class="nav">
@@ -5799,7 +5805,8 @@ function _monthlyCore(ym,big,logoSrc){
 function printMonthlyReport(ym){
   ym=ym||reportMonth();
   const {core,styles}=_monthlyCore(ym);
-  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>KE Fayhaa Monthly Report ${ym}</title><style>@page{size:A4 landscape;margin:9mm}${styles}</style></head><body>${core}
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>KE Fayhaa Monthly Report ${ym}</title><style>@page{size:A4 landscape;margin:9mm}${styles}</style><!-- v245-deploy-1783848982 -->
+</head><body>${core}
   <scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
   </body></html>`;
   const w=window.open('','_blank');
