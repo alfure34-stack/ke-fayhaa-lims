@@ -2436,38 +2436,38 @@ function exportSolventReport(){
   const product=recs[0].product||'Annulus';
   const wells=[...new Set(recs.map(r=>r.well||''))].join(' / ');
   const rows=[
-    [{v:'FAYHAA OIL FIELD LABORATORY TEST REPORT',s:'tBig',m:5}],
-    [{v:'',s:'cell',m:5}],
+    [{v:'FAYHAA OIL FIELD LABORATORY TEST REPORT',s:'tBig',m:6}],
+    [{v:'',s:'cell',m:6}],
     [{v:'Product',s:'hdr'},{v:product,s:'val',m:3}],
     [{v:'Sampled Date/Time',s:'hdr'},{v:selDate,s:'val',m:3}],
     [{v:'Analysis Date',s:'hdr'},{v:selDate,s:'val',m:3}],
-    [{v:'',s:'cell',m:5}],
-    [{v:wells,s:'band',m:5}],
-    [{v:'Sample Name',s:'hdr'},{v:'Date and Time',s:'hdr'},{v:'Specific Gravity',s:'hdr'},{v:'DENSITY\ng/cm3 @ 60 F',s:'hdr'},{v:'pH',s:'hdr'},{v:'HCl Conc.\n%',s:'hdr'}],
+    [{v:'',s:'cell',m:6}],
+    [{v:wells,s:'band',m:6}],
+    [{v:'Sample Name',s:'hdr'},{v:'Product',s:'hdr'},{v:'Date and Time',s:'hdr'},{v:'Specific Gravity',s:'hdr'},{v:'DENSITY\ng/cm3 @ 60 F',s:'hdr'},{v:'pH',s:'hdr'},{v:'HCl Conc.\n%',s:'hdr'}],
     ...recs.map(r=>[
-      {v:r.well||'',s:'val'},{v:selDate,s:'val'},
+      {v:r.well||'',s:'val'},{v:r.product||'',s:'val'},{v:selDate,s:'val'},
       {v:r.sg!=null?Number(r.sg).toFixed(4):'',s:'val'},
       {v:r.density60!=null?Number(r.density60).toFixed(4):'',s:'val'},
       {v:r.ph!=null?Number(r.ph).toFixed(1):'',s:'val'},
       {v:r.hcl!=null?Number(r.hcl).toFixed(2):'',s:'val'},
     ]),
-    [{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],
-    [{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],
-    [{v:'Remark:',s:'lft',m:5}],
-    [{v:'',s:'cell',m:5}],
-    [{v:'KEBL:',s:'hdr',m:5}],
-    [{v:'',s:'cell',m:5}],
-    [{v:'Signed: ',s:'lft',m:5}],
-    [{v:'',s:'cell',m:5}],[{v:'',s:'cell',m:5}],
-    [{v:'Lab Supervisor: '+supervisor,s:'lft',m:5}],
-    [{v:'This certificate shall not be reproduced, except in full, without written approval of the laboratory.',s:'cell',m:5}],
-    [{v:'',s:'cell',m:5}],
-    [{v:'Kuwait Energy Basra Limited KEBL, Subsidiary of United Energy Group Limited, PAC - Block 9 Oil Field, FYHAA Laboratory, Basra - Iraq',s:'cell',m:5}],
+    [{v:'',s:'cell',m:6}],[{v:'',s:'cell',m:6}],[{v:'',s:'cell',m:6}],[{v:'',s:'cell',m:6}],
+    [{v:'',s:'cell',m:6}],[{v:'',s:'cell',m:6}],[{v:'',s:'cell',m:6}],
+    [{v:'Remark:',s:'lft',m:6}],
+    [{v:'',s:'cell',m:6}],
+    [{v:'KEBL:',s:'hdr',m:6}],
+    [{v:'',s:'cell',m:6}],
+    [{v:'Signed: ',s:'lft',m:6}],
+    [{v:'',s:'cell',m:6}],[{v:'',s:'cell',m:6}],
+    [{v:'Lab Supervisor: '+supervisor,s:'lft',m:6}],
+    [{v:'This certificate shall not be reproduced, except in full, without written approval of the laboratory.',s:'cell',m:6}],
+    [{v:'',s:'cell',m:6}],
+    [{v:'Kuwait Energy Basra Limited KEBL, Subsidiary of United Energy Group Limited, PAC - Block 9 Oil Field, FYHAA Laboratory, Basra - Iraq',s:'cell',m:6}],
   ];
   const images=[];
   if(typeof BOC_LOGO_PNG==='string'&&BOC_LOGO_PNG.length>100)
     images.push({png:BOC_LOGO_PNG,col:3.5,row:0.2,w:130,h:65});
-  const sheet={name:'Solvent Check',cols:[200,140,120,130,80,80],rows:rows,freeze:{rows:0,cols:0},images:images};
+  const sheet={name:'Solvent Check',cols:[160,120,120,110,130,70,70],rows:rows,freeze:{rows:0,cols:0},images:images};
   _ensureExcelJS().then(()=>{
     _xlsxFromModels([sheet],'Solvent_Check_'+wells.replace(/[\/\/ ]/g,'-')+'_'+selDate+'.xlsx','📄 Solvent report — '+recs.length+' samples');
   }).catch(e=>toast('❌ '+e.message));
